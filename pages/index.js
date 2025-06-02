@@ -1,115 +1,254 @@
+import { useState, useRef } from "react";
 import Image from "next/image";
-import { Geist, Geist_Mono } from "next/font/google";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export default function Home() {
+  const [formData, setFormData] = useState({
+    tipo_documento: "DNI",
+    dni_cuit: "",
+    provincia: "Chaco",
+    departamento: "Ldor. Gral. San Martín",
+    localidad: "",
+    domicilio: "",
+    dominio: "",
+    tipo_dominio: "Mercosur",
+    cedula_frente: null,
+    cedula_dorso: null,
+  });
+
+  const cedulaFrenteRef = useRef(null);
+  const cedulaDorsoRef = useRef(null);
+
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+    if (files) {
+      setFormData((prev) => ({ ...prev, [name]: files[0] }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const formDataToSend = new FormData();
+    for (const key in formData) {
+      formDataToSend.append(key, formData[key]);
+    }
+
+    try {
+      const res = await fetch("/api/guardar", {
+        method: "POST",
+        body: formDataToSend,
+      });
+
+      if (res.ok) {
+        alert("✅ Datos enviados y guardados correctamente");
+        setFormData({
+          tipo_documento: "DNI",
+          dni_cuit: "",
+          provincia: "Chaco",
+          departamento: "Ldor. Gral. San Martín",
+          localidad: "",
+          domicilio: "",
+          dominio: "",
+          tipo_dominio: "Mercosur",
+          cedula_frente: null,
+          cedula_dorso: null,
+        });
+        if (cedulaFrenteRef.current) cedulaFrenteRef.current.value = "";
+        if (cedulaDorsoRef.current) cedulaDorsoRef.current.value = "";
+      } else {
+        alert("❌ Error al enviar datos");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("❌ Error al enviar datos");
+    }
+  };
+
+  const localidades = [
+    "Gral. José de San Martín",
+    "Pampa Almirón",
+    "Pampa del Indio",
+    "La Eduvigis",
+    "Laguna Limpia",
+    "Selvas del Río de Oro",
+    "Ciervo Petiso",
+    "Presidencia Roca",
+    "El Sauzalito",
+  ];
+
   return (
-    <div
-      className={`${geistSans.className} ${geistMono.className} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
-    >
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              pages/index.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <>
+      <div className="page-background">
+        <div className="logo-municipio">
+          <Image src="/logo-municipio.jpg" alt="Logo Municipio" width={150} height={100} />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+        <h2 className="titulo-municipio">Municipio de Gral. José de San Martín</h2>
+
+        <div className="formulario-container">
+          <h1 className="titulo-form">Registro/ALTA de Patente Municipal</h1>
+          <form onSubmit={handleSubmit}>
+            <label>Tipo de documento:</label>
+            <select name="tipo_documento" value={formData.tipo_documento} onChange={handleChange}>
+              <option value="DNI">DNI</option>
+              <option value="CUIT">CUIT</option>
+              <option value="CÉDULA">CÉDULA</option>
+            </select>
+
+            <label>Número:</label>
+            <input
+              type="text"
+              name="dni_cuit"
+              value={formData.dni_cuit}
+              onChange={handleChange}
+              required
+            />
+
+            <label>Provincia:</label>
+            <input type="text" value="Chaco" disabled />
+
+            <label>Departamento:</label>
+            <input type="text" value="Ldor. Gral. San Martín" disabled />
+
+            <label>Localidad:</label>
+            <select name="localidad" value={formData.localidad} onChange={handleChange} required>
+              <option value="">Seleccione localidad</option>
+              {localidades.map((loc) => (
+                <option key={loc} value={loc}>
+                  {loc}
+                </option>
+              ))}
+            </select>
+
+            <label>Domicilio:</label>
+            <input
+              type="text"
+              name="domicilio"
+              value={formData.domicilio}
+              onChange={handleChange}
+              required
+            />
+
+            <label>Dominio:</label>
+            <input
+              type="text"
+              name="dominio"
+              value={formData.dominio}
+              onChange={handleChange}
+              required
+            />
+
+            <label>Tipo de dominio:</label>
+            <select
+              name="tipo_dominio"
+              value={formData.tipo_dominio}
+              onChange={handleChange}
+              required
+            >
+              <option value="Mercosur">Mercosur</option>
+              <option value="Modelo Anterior">Modelo Anterior</option>
+            </select>
+
+            <label>📷 Cédula del automotor (frente):</label>
+            <input
+              type="file"
+              name="cedula_frente"
+              accept="image/*"
+              onChange={handleChange}
+              required
+              ref={cedulaFrenteRef}
+            />
+
+            <label>📷 Cédula del automotor (dorso):</label>
+            <input
+              type="file"
+              name="cedula_dorso"
+              accept="image/*"
+              onChange={handleChange}
+              required
+              ref={cedulaDorsoRef}
+            />
+
+            <button type="submit">Enviar</button>
+          </form>
+        </div>
+
+        <style jsx>{`
+          .page-background {
+            background-color: #5b2b8c;
+            min-height: 100vh;
+            padding-top: 40px;
+            color: #fff;
+          }
+
+          .logo-municipio {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+          }
+
+          .titulo-municipio {
+            text-align: center;
+            font-size: 18px;
+            color: #fff;
+            margin-bottom: 20px;
+          }
+
+          .formulario-container {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            margin: auto;
+          }
+
+          .titulo-form {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 30px;
+          }
+
+          label {
+            display: block;
+            margin-top: 20px;
+            font-weight: normal;
+            color: #fff;
+            font-size: 15px;
+          }
+
+          input,
+          select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            color: #000;
+            font-size: 15px;
+          }
+
+          button {
+            display: block;
+            margin: 30px auto 0 auto;
+            padding: 12px 20px;
+            background-color: #fff;
+            color: #5b2b8c;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+          }
+
+          button:hover {
+            background-color: #e6e6e6;
+          }
+        `}</style>
+      </div>
+    </>
   );
 }
