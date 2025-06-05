@@ -38,6 +38,12 @@ export default function ConsultaCodigo() {
     }
   };
 
+  // Función para formatear el valor fiscal
+  const formatearMoneda = (valor) => {
+    const numero = parseFloat(valor);
+    return isNaN(numero) ? valor : numero.toLocaleString("es-AR", { style: "currency", currency: "ARS" });
+  };
+
   return (
     <div className="min-h-screen bg-[#5b2b8c] text-white pt-10 px-4">
       {/* Logo */}
@@ -55,16 +61,20 @@ export default function ConsultaCodigo() {
         <h1 className="text-xl font-bold text-center mb-6">Paso 3: Ingrese Código del Automotor</h1>
 
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium">Origen seleccionado:</label>
-            <p className="bg-white text-black rounded-md px-3 py-2 border border-gray-300">{origen}</p>
+          {/* Origen y año de referencia */}
+          <div className="flex justify-between gap-4 text-sm mb-2">
+            <div className="w-1/2">
+              <label className="block text-white/70">Origen:</label>
+              <div className="px-3 py-2 rounded-md bg-white/20 text-white">{origen}</div>
+            </div>
+
+            <div className="w-1/2">
+              <label className="block text-white/70">Año:</label>
+              <div className="px-3 py-2 rounded-md bg-white/20 text-white">{anio}</div>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium">Año seleccionado:</label>
-            <p className="bg-white text-black rounded-md px-3 py-2 border border-gray-300">{anio}</p>
-          </div>
-
+          {/* Input código */}
           <div>
             <label className="block text-sm font-medium">Código del automotor:</label>
             <input
@@ -80,12 +90,13 @@ export default function ConsultaCodigo() {
             />
           </div>
 
+          {/* Botones */}
           <div className="flex justify-between items-center pt-6">
             <Link
               href="/consulta/origen"
               className="bg-white text-[#5b2b8c] font-bold py-2 px-4 rounded-md shadow-md text-sm transition-all hover:shadow-xl hover:-translate-y-1"
             >
-              ← Paso 3
+              ← Paso 2
             </Link>
 
             <button
@@ -96,12 +107,15 @@ export default function ConsultaCodigo() {
             </button>
           </div>
 
+          {/* Mensaje de error */}
           {error && <p className="text-red-400 font-semibold pt-4">{error}</p>}
 
+          {/* Resultado formateado */}
           {resultado && (
             <div className="bg-white/20 p-4 mt-6 rounded-md">
-              <h2 className="text-md font-bold mb-2">Resultado:</h2>
-              <pre className="whitespace-pre-wrap text-xs">{JSON.stringify(resultado, null, 2)}</pre>
+              <h2 className="text-md font-bold mb-2">Valor de Tabla:</h2>
+              <p className="text-sm mb-2"><strong>Descripción:</strong> {resultado.descripcion}</p>
+              <p className="text-sm"><strong>Valor Fiscal:</strong> {formatearMoneda(resultado.valorFiscal)}</p>
             </div>
           )}
         </div>
