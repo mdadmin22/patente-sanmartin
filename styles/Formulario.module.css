@@ -1,0 +1,107 @@
+/* styles/Formulario.module.css */
+
+.formularioContainer {
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: #f9f9f9;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+  font-family: Arial, sans-serif;
+}
+
+.titulo {
+  text-align: center;
+  font-size: 1.8rem;
+  color: #222;
+  margin-bottom: 1.5rem;
+}
+
+.campoFormulario {
+  margin-bottom: 1rem;
+}
+
+.etiqueta {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 0.4rem;
+  color: #333;
+}
+
+.valor {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  padding: 0.5rem;
+  border-radius: 6px;
+  color: #222;
+}
+
+.input {
+  width: 100%;
+  padding: 0.6rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+.botonesFormulario {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+}
+
+.botonPrimario {
+  background-color: #0056b3;
+  color: white;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.botonPrimario:hover {
+  background-color: #003d80;
+}
+
+.botonSecundario {
+  background-color: #ccc;
+  color: #222;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.botonSecundario:hover {
+  background-color: #aaa;
+}
+
+.error {
+  color: red;
+  margin-top: 1rem;
+  font-weight: bold;
+}
+
+.resultadoFormulario {
+  margin-top: 2rem;
+  padding: 1rem;
+  background-color: #eef4ff;
+  border-left: 4px solid #0056b3;
+  border-radius: 6px;
+}
+
+.resultadoTitulo {
+  margin-bottom: 0.8rem;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #003d80;
+}
+
+.preResultado {
+  font-family: monospace;
+  white-space: pre-wrap;
+  color: #111;
+}
