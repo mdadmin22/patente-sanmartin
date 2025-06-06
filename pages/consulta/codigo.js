@@ -1,159 +1,170 @@
 // pages/consulta/codigo.js
 import { useRouter } from "next/router";
-import { useState } from "react";
-import Link from "next/link";
-import Image from "next/image";
+import { useState, useEffect } from "react";
 
-export default function ConsultaCodigo() {
+export default function Paso3Codigo() {
   const router = useRouter();
-  const { origen, anio, tipo_documento, dni_cuit, nombre, apellido, localidad, domicilio_calle, domicilio_nro } = router.query;
 
   const [codigoMTM, setCodigoMTM] = useState("");
-  const [resultado, setResultado] = useState(null);
-  const [error, setError] = useState("");
+  const [anio, setAnio] = useState("");
+  const [valorFiscal, setValorFiscal] = useState("");
   const [valorDeclarado, setValorDeclarado] = useState("");
-  const [tipoPago, setTipoPago] = useState("1");
+  const [formaPago, setFormaPago] = useState("MercadoPago");
+  const [tipoPago, setTipoPago] = useState("1mes");
+  const [descripcion, setDescripcion] = useState("");
+  const [datosPaso2, setDatosPaso2] = useState(null);
 
-  const handleConsulta = async () => {
-    if (!codigoMTM) {
-      setError("Ingrese el código MTM/FMM");
+  useEffect(() => {
+  const paso2 = JSON.parse(sessionStorage.getItem("datosPaso2"));
+  if (paso2) {
+    setDatosPaso2(paso2);
+    setAnio(paso2.anio); // ✅ Esta es la línea que faltaba
+  }
+}, []);
+
+  const consultarValorFiscal = async () => {
+    if (!codigoMTM || !anio) {
+      alert("Por favor complete el código MTM/FMM y asegúrese de que el año esté disponible.");
       return;
     }
 
-    let codigoFinal = codigoMTM.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
-
-    if (origen === "Importado" || origen === "I") {
-      const marca = codigoFinal.slice(0, 3);
-      const tipo = codigoFinal.slice(3, 5);
-      const modelo = codigoFinal.slice(5);
-      codigoFinal = `${marca}${tipo}${modelo}`;
-    }
-
     try {
-      const res = await fetch(`/api/valorFiscal?codigo_mtm=${codigoFinal}&anio=${anio}`);
-      if (!res.ok) throw new Error("Código no encontrado");
+      const res = await fetch(`/api/valorFiscal?codigo_mtm=${codigoMTM}&anio=${anio}`);
       const data = await res.json();
-      setResultado(data);
-      setError("");
-    } catch (err) {
-      setResultado(null);
-      setError(err.message);
+      if (data && data.valorFiscal) {
+        setValorFiscal(data.valorFiscal);
+      } else {
+        alert("No se encontró valor fiscal para el código ingresado.");
+      }
+    } catch (error) {
+      console.error("Error al consultar valor fiscal:", error);
+      alert("Error al consultar valor fiscal.");
     }
   };
 
-  const formatMoneda = (valor) =>
-    Number(valor).toLocaleString("es-AR", {
-      style: "currency",
-      currency: "ARS",
-      minimumFractionDigits: 0,
-    });
+  const handleSiguiente = () => {
+    const mayor_valor = Math.max(
+      Number(valorFiscal || 0),
+      Number(valorDeclarado || 0)
+    );
+
+    const datosCodigo = {
+      codigo_mtm: codigoMTM,
+      anio,
+      valor_fiscal: valorFiscal,
+      valor_declarado: valorDeclarado,
+      forma_pago: formaPago,
+      tipo_pago: tipoPago,
+      mayor_valor,
+    };
+    sessionStorage.setItem("datosCodigo", JSON.stringify(datosCodigo));
+    router.push("/consulta/volante");
+  };
+
+  const handleVolver = () => {
+    router.push("/consulta/origen");
+  };
 
   return (
-    <div className="min-h-screen bg-[#5b2b8c] text-white pt-10 px-4">
-      <div className="flex justify-center mb-4">
-        <Image src="/logo-municipio.jpg" alt="Logo Municipio" width={150} height={100} />
-      </div>
+    <div className="min-h-screen bg-[#f0f0f0] text-black pt-10 px-4">
+      <h1 className="text-2xl font-bold text-center mb-6">Paso 3: Código del Automotor</h1>
 
-      <h2 className="text-2xl text-center font-semibold mb-6">
-        Municipio de Gral. José de San Martín
-      </h2>
-
-      <div className="bg-white/10 backdrop-blur-md p-8 rounded-xl max-w-xl mx-auto">
-        <h1 className="text-xl font-bold text-center mb-6">Paso 3: Ingrese Código del Automotor</h1>
-
-        <div className="space-y-4 text-sm">
-          {/* Info del titular */}
-          <div className="text-white/80">
-            <p><strong>Origen:</strong> {origen}</p>
+      <div className="max-w-xl mx-auto space-y-4 bg-white p-6 rounded-md shadow-md">
+        {datosPaso2 && (
+          <div className="bg-gray-100 p-4 rounded">
+            <p><strong>Dominio:</strong> {datosPaso2.dominio}</p>
+            <p><strong>Origen:</strong> {datosPaso2.origen}</p>
+            <p><strong>Tipo de dominio:</strong> {datosPaso2.tipo_dominio}</p>
             <p><strong>Año:</strong> {anio}</p>
-            <p><strong>Nombre:</strong> {apellido} {nombre}</p>
-            <p><strong>Documento:</strong> {tipo_documento} {dni_cuit}</p>
-            <p><strong>Domicilio:</strong> {domicilio_calle} {domicilio_nro}, {localidad}</p>
           </div>
+        )}
 
-          <div>
-            <label className="block text-sm font-medium">Código del automotor:</label>
-            <input
-              type="text"
-              value={codigoMTM}
-              onChange={(e) => setCodigoMTM(e.target.value)}
-              placeholder={
-                origen === "Importado" || origen === "I"
-                  ? "Ej: MarcaTipoModelo (MTM)"
-                  : "Ej: FabricaMarcaModelo (FMM)"
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-black"
-            />
-          </div>
+        <div>
+          <label>Código MTM/FMM:</label>
+          <input
+            type="text"
+            value={codigoMTM}
+            onChange={(e) => setCodigoMTM(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+          />
+        </div>
 
-          <div className="flex justify-between items-center pt-4">
-            <Link
-              href="/consulta/origen"
-              className="bg-white text-[#5b2b8c] font-bold py-2 px-4 rounded-md shadow-md text-sm transition-all hover:shadow-xl hover:-translate-y-1"
-            >
-              ← Paso 2
-            </Link>
+        <div>
+          <label>Año:</label>
+          <input
+            type="text"
+            value={anio}
+            readOnly
+            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100"
+          />
+        </div>
 
-            <button
-              onClick={handleConsulta}
-              className="bg-white text-[#5b2b8c] font-bold py-2 px-6 rounded-md shadow-md text-sm transition-all hover:shadow-xl hover:-translate-y-1"
-            >
-              Consultar valor
-            </button>
-          </div>
+        <button
+          onClick={consultarValorFiscal}
+          className="bg-blue-600 text-white py-2 px-4 rounded-md"
+        >
+          Consultar Valor Fiscal
+        </button>
 
-          {error && <p className="text-red-400 font-semibold pt-4">{error}</p>}
+        <div>
+          <label>Valor Fiscal:</label>
+          <input
+            type="text"
+            value={valorFiscal}
+            readOnly
+            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100"
+          />
+        </div>
 
-          {/* Resultado formateado */}
-          {resultado && (
-            <div className="bg-white/20 p-4 mt-6 rounded-md space-y-3">
-              <p className="font-semibold text-md">
-                Valor de tabla: {formatMoneda(resultado.valorFiscal)}
-              </p>
-              <p className="text-sm italic">{resultado.descripcion}</p>
+        <div>
+          <label>Valor Declarado por el Contribuyente:</label>
+          <input
+            type="number"
+            value={valorDeclarado}
+            onChange={(e) => setValorDeclarado(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+          />
+        </div>
 
-              {/* Campos adicionales */}
-              <div>
-                <label className="block text-sm font-medium">Valor declarado (opcional):</label>
-                <input
-                  type="number"
-                  value={valorDeclarado}
-                  onChange={(e) => setValorDeclarado(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-black"
-                  placeholder="Ej: 3100000"
-                />
-              </div>
+        <div>
+          <label>Forma de Pago:</label>
+          <select
+            value={formaPago}
+            onChange={(e) => setFormaPago(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+          >
+            <option value="MercadoPago">MercadoPago</option>
+            <option value="Transferencia">Transferencia</option>
+            <option value="Efectivo">Efectivo</option>
+          </select>
+        </div>
 
-              <div>
-                <label className="block text-sm font-medium">Tipo de pago:</label>
-                <select
-                  value={tipoPago}
-                  onChange={(e) => setTipoPago(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-black"
-                >
-                  <option value="1">1 mes</option>
-                  <option value="6">6 meses</option>
-                  <option value="12">12 meses</option>
-                </select>
-              </div>
+        <div>
+          <label>Tipo de Pago:</label>
+          <select
+            value={tipoPago}
+            onChange={(e) => setTipoPago(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+          >
+            <option value="1mes">1 mes</option>
+            <option value="6meses">6 meses</option>
+            <option value="12meses">12 meses</option>
+          </select>
+        </div>
 
-              {/* Botón siguiente paso */}
-              <button
-                onClick={() => {
-                  const mayor = Math.max(
-                    Number(valorDeclarado || 0),
-                    Number(resultado.valorFiscal)
-                  );
-                  router.push(
-                    `consulta/volante?mayor_valor=${mayor}&tipo_pago=${tipoPago}`
-                  );
-                }}
-                className="w-full mt-4 bg-white text-[#5b2b8c] font-bold py-2 px-4 rounded-md shadow-md hover:shadow-xl hover:-translate-y-1"
-              >
-                Generar Volante →
-              </button>
-            </div>
-          )}
+        <div className="flex justify-between pt-4">
+          <button
+            onClick={handleVolver}
+            className="bg-gray-400 text-white py-2 px-4 rounded-md"
+          >
+            Volver
+          </button>
+          <button
+            onClick={handleSiguiente}
+            className="bg-[#5b2b8c] text-white py-2 px-4 rounded-md"
+          >
+            Generar Volante
+          </button>
         </div>
       </div>
     </div>

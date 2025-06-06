@@ -17,11 +17,18 @@ export default function SeleccionOrigen() {
   const [fotoCedulaDorso, setFotoCedulaDorso] = useState(null);
 
   const manejarSiguiente = () => {
-    // ⚠️ Las fotos se deben guardar en el paso 4 o al guardar en DB
-    router.push(
-      `/consulta/codigo?origen=${origen}&anio=${anio}&tipo_dominio=${tipoDominio}&dominio=${dominio}`
-    );
-  };
+  sessionStorage.setItem("datosPaso2", JSON.stringify({
+    tipo_dominio: tipoDominio,
+    dominio,
+    origen,
+    anio
+  }));
+
+  router.push(
+    `/consulta/codigo?origen=${origen}&anio=${anio}&tipo_dominio=${tipoDominio}&dominio=${dominio}`
+  );
+};
+
 
   // 🟣 Ajuste dinámico de placeholder
   const placeholderDominio = tipoDominio === "Mercosur" ? "Ej: AA123BB" : "Ej: ABC123";

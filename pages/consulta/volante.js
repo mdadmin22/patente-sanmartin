@@ -1,27 +1,127 @@
-// pages/volante.js
-import { useRouter } from "next/router";
+// pages/consulta/volante.js
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
 export default function Volante() {
-  const router = useRouter();
-  const {
-    mayor_valor = 0,
-    tipo_pago = 1, // mensual = 1, anual = 12
-  } = router.query;
-
-  const [baseFija] = useState(5000);
-  const [alicuota] = useState(0.003);
+  const [datosCodigo, setDatosCodigo] = useState(null);
   const [aliasMunicipio] = useState("MUNICIPIO.SANMARTIN.MP");
 
-  const mayorValor = Number(mayor_valor);
-  const tipoPago = Number(tipo_pago);
+  useEffect(() => {
+    const datos = JSON.parse(sessionStorage.getItem("datosCodigo"));
+    const persona = JSON.parse(sessionStorage.getItem("datosPaso2"));
+    if (datos && persona) {
+      setDatosCodigo({ ...datos, ...persona });
+    }
+  }, []);
 
+  useEffect(() => {
+    if (!datosCodigo) return;
+
+    const {
+      valor_fiscal,
+      valor_declarado,
+      tipo_pago,
+      tipo_tramite,
+      tipo_documento,
+      dni_cuit,
+      apellido,
+      nombre,
+      localidad,
+      domicilio_calle,
+      domicilio_nro,
+      tipo_dominio,
+      dominio,
+      origen,
+      anio,
+      codigo_mtm,
+    } = datosCodigo;
+
+    const baseFija = 5000;
+    const alicuota = 0.003;
+    const mayorValor = Math.max(Number(valor_fiscal || 0), Number(valor_declarado || 0));
+    const baseVariable = mayorValor * alicuota;
+    const cantidadMeses = parseInt(tipo_pago.replace("mes", "").replace("es", ""));
+    const subtotal1 = baseFija;
+    const subtotal2 = baseVariable * cantidadMeses;
+    let totalPagar = subtotal1 + subtotal2;
+
+    let descuento = 0;
+    if (tipo_pago === "12meses") {
+      descuento = 0.1 * totalPagar;
+      totalPagar -= descuento;
+    }
+
+    const guardarEnDB = async () => {
+      try {
+        await fetch("/api/guardar-inscripcion", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            tipo_tramite,
+            tipo_documento,
+            dni_cuit,
+            apellido,
+            nombre,
+            localidad,
+            domicilio_calle,
+            domicilio_nro,
+            tipo_dominio,
+            dominio,
+            origen,
+            anio,
+            codigo_mtm,
+            valor_fiscal: Number(valor_fiscal || 0),
+            valor_declarado: Number(valor_declarado || 0),
+            mayor_valor: mayorValor,
+            base_fija: baseFija,
+            alicuota,
+            base_variable: baseVariable,
+            tipo_pago: cantidadMeses,
+            subtotal1,
+            subtotal2,
+            descuento,
+            total: totalPagar,
+          }),
+        });
+      } catch (err) {
+        console.error("❌ Error al guardar inscripción:", err);
+      }
+    };
+
+    guardarEnDB();
+  }, [datosCodigo]);
+
+  if (!datosCodigo) return <p className="text-center pt-20">Cargando...</p>;
+
+  const {
+    valor_fiscal,
+    valor_declarado,
+    tipo_pago,
+    apellido,
+    nombre,
+    localidad,
+    domicilio_calle,
+    domicilio_nro,
+    origen,
+    anio,
+    codigo_mtm,
+  } = datosCodigo;
+
+  const baseFija = 5000;
+  const alicuota = 0.003;
+  const mayorValor = Math.max(Number(valor_fiscal || 0), Number(valor_declarado || 0));
   const baseVariable = mayorValor * alicuota;
+  const cantidadMeses = parseInt(tipo_pago.replace("mes", "").replace("es", ""));
   const subtotal1 = baseFija;
-  const subtotal2 = baseVariable * tipoPago;
-  const totalPagar = subtotal1 + subtotal2;
+  const subtotal2 = baseVariable * cantidadMeses;
+  let totalPagar = subtotal1 + subtotal2;
+
+  let descuento = 0;
+  if (tipo_pago === "12meses") {
+    descuento = 0.1 * totalPagar;
+    totalPagar -= descuento;
+  }
 
   return (
     <div className="min-h-screen bg-white text-black pt-10 px-4">
@@ -37,7 +137,10 @@ export default function Volante() {
         <p><strong>Alicuota:</strong> {(alicuota * 100).toFixed(2)}%</p>
         <p><strong>Base Variable:</strong> ${baseVariable.toLocaleString("es-AR")}</p>
         <p><strong>Subtotal 1 (Base Fija):</strong> ${subtotal1.toLocaleString("es-AR")}</p>
-        <p><strong>Subtotal 2 (Base Variable x Tipo Pago):</strong> ${subtotal2.toLocaleString("es-AR")}</p>
+        <p><strong>Subtotal 2 (Base Variable x Meses):</strong> ${subtotal2.toLocaleString("es-AR")}</p>
+        {descuento > 0 && (
+          <p className="text-green-700 font-semibold">Descuento por pago anual: -${descuento.toLocaleString("es-AR")}</p>
+        )}
         <p className="text-lg font-semibold"><strong>Total a Pagar:</strong> ${totalPagar.toLocaleString("es-AR")}</p>
         <div className="mt-4">
           <p><strong>Alias para Transferencia:</strong></p>
