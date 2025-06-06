@@ -1,36 +1,39 @@
 // pages/consulta/origen.js
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
 export default function SeleccionOrigen() {
   const router = useRouter();
+
   const [origen, setOrigen] = useState("N");
   const [anio, setAnio] = useState("2024");
-
-  // 🟣 Agregado: campos adicionales del automotor
   const [tipoDominio, setTipoDominio] = useState("Mercosur");
   const [dominio, setDominio] = useState("");
-  const [fotoTitulo, setFotoTitulo] = useState(null);
-  const [fotoCedulaFrente, setFotoCedulaFrente] = useState(null);
-  const [fotoCedulaDorso, setFotoCedulaDorso] = useState(null);
+
+  useEffect(() => {
+    const datosTitular = JSON.parse(sessionStorage.getItem("datosTitular"));
+    if (!datosTitular) {
+      alert("Por favor completá el Paso 1 antes de continuar.");
+      router.push("/alta");
+    }
+  }, []);
 
   const manejarSiguiente = () => {
-  sessionStorage.setItem("datosPaso2", JSON.stringify({
-    tipo_dominio: tipoDominio,
-    dominio,
-    origen,
-    anio
-  }));
+    const datosTitular = JSON.parse(sessionStorage.getItem("datosTitular"));
 
-  router.push(
-    `/consulta/codigo?origen=${origen}&anio=${anio}&tipo_dominio=${tipoDominio}&dominio=${dominio}`
-  );
-};
+    sessionStorage.setItem("datosPaso2", JSON.stringify({
+      ...(datosTitular || {}),
+      tipo_dominio: tipoDominio,
+      dominio,
+      origen,
+      anio
+    }));
 
+    router.push("/consulta/codigo");
+  };
 
-  // 🟣 Ajuste dinámico de placeholder
   const placeholderDominio = tipoDominio === "Mercosur" ? "Ej: AA123BB" : "Ej: ABC123";
 
   return (
@@ -95,41 +98,10 @@ export default function SeleccionOrigen() {
             />
           </div>
 
-          {/* Fotos opcionales */}
-          <div>
-            <label className="block text-sm font-medium">Foto del Título (opcional):</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setFotoTitulo(e.target.files[0])}
-              className="w-full text-sm text-black"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium">Foto Cédula - Frente (opcional):</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setFotoCedulaFrente(e.target.files[0])}
-              className="w-full text-sm text-black"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium">Foto Cédula - Dorso (opcional):</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setFotoCedulaDorso(e.target.files[0])}
-              className="w-full text-sm text-black"
-            />
-          </div>
-
           <div className="flex justify-between items-center pt-6">
             <Link
               href="/alta"
-              className="bg-white text-[#5b2b8c] font-bold py-2 px-4 rounded-md shadow-md text-sm transition-all hover:shadow-xl hover:-translate-y-1"
+              className="bg-white text-[#5b2b8c] font-bold py-2 px-4 rounded-md shadow-md text-sm hover:shadow-xl hover:-translate-y-1"
             >
               ← Paso 1
             </Link>

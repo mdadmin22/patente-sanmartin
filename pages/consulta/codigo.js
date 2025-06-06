@@ -1,4 +1,4 @@
-// pages/consulta/codigo.js
+// ✅ codigo.js completo y corregido
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 
@@ -13,14 +13,17 @@ export default function Paso3Codigo() {
   const [tipoPago, setTipoPago] = useState("1mes");
   const [descripcion, setDescripcion] = useState("");
   const [datosPaso2, setDatosPaso2] = useState(null);
+  const [datosAutomotor, setDatosAutomotor] = useState(null);
 
   useEffect(() => {
-  const paso2 = JSON.parse(sessionStorage.getItem("datosPaso2"));
-  if (paso2) {
-    setDatosPaso2(paso2);
-    setAnio(paso2.anio); // ✅ Esta es la línea que faltaba
-  }
-}, []);
+    const paso2 = JSON.parse(sessionStorage.getItem("datosPaso2"));
+    console.log("📦 datosPaso2:", paso2);
+
+    if (paso2) {
+      setDatosPaso2(paso2);
+      setAnio(paso2.anio);
+    }
+  }, []);
 
   const consultarValorFiscal = async () => {
     if (!codigoMTM || !anio) {
@@ -31,8 +34,22 @@ export default function Paso3Codigo() {
     try {
       const res = await fetch(`/api/valorFiscal?codigo_mtm=${codigoMTM}&anio=${anio}`);
       const data = await res.json();
+
+      console.log("🔍 Valor fiscal:", data.valorFiscal);
+      console.log("🚗 Datos automotor:", data.datosAutomotor);
+
       if (data && data.valorFiscal) {
         setValorFiscal(data.valorFiscal);
+
+        // ✅ unimos datos del automotor y del contribuyente
+        const automotorFinal = {
+          ...(data.datosAutomotor || {}),
+          ...(datosPaso2 || {}),
+          origen: datosPaso2?.origen || "",
+          anio: datosPaso2?.anio || anio,
+        };
+
+        setDatosAutomotor(automotorFinal);
       } else {
         alert("No se encontró valor fiscal para el código ingresado.");
       }
@@ -46,8 +63,11 @@ export default function Paso3Codigo() {
     const mayor_valor = Math.max(
       Number(valorFiscal || 0),
       Number(valorDeclarado || 0)
+      
     );
-
+console.log("📤 Enviando a volante:", {
+  datos_automotor: datosAutomotor
+});
     const datosCodigo = {
       codigo_mtm: codigoMTM,
       anio,
@@ -56,7 +76,9 @@ export default function Paso3Codigo() {
       forma_pago: formaPago,
       tipo_pago: tipoPago,
       mayor_valor,
+      datos_automotor: datosAutomotor, // ✅ se guarda todo en datos_automotor
     };
+
     sessionStorage.setItem("datosCodigo", JSON.stringify(datosCodigo));
     router.push("/consulta/volante");
   };

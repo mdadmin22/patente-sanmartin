@@ -1,4 +1,3 @@
-// pages/consulta/volante.js
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -6,12 +5,20 @@ import Image from "next/image";
 export default function Volante() {
   const [datosCodigo, setDatosCodigo] = useState(null);
   const [aliasMunicipio] = useState("MUNICIPIO.SANMARTIN.MP");
+  const [datosCalculo, setDatosCalculo] = useState(null);
 
   useEffect(() => {
     const datos = JSON.parse(sessionStorage.getItem("datosCodigo"));
     const persona = JSON.parse(sessionStorage.getItem("datosPaso2"));
+
     if (datos && persona) {
-      setDatosCodigo({ ...datos, ...persona });
+      setDatosCodigo({
+        ...persona,
+        ...datos,
+        datos_automotor: {
+          ...(datos.datos_automotor || {}),
+        },
+      });
     }
   }, []);
 
@@ -27,14 +34,22 @@ export default function Volante() {
       dni_cuit,
       apellido,
       nombre,
+      razon_social,
+      provincia,
+      departamento,
       localidad,
       domicilio_calle,
       domicilio_nro,
+      telefono,
+      mail,
+      mail_repetir,
       tipo_dominio,
       dominio,
       origen,
       anio,
       codigo_mtm,
+      forma_pago,
+      datos_automotor,
     } = datosCodigo;
 
     const baseFija = 5000;
@@ -52,6 +67,18 @@ export default function Volante() {
       totalPagar -= descuento;
     }
 
+    setDatosCalculo({
+      baseFija,
+      baseVariable,
+      cantidadMeses,
+      subtotal1,
+      subtotal2,
+      descuento,
+      totalPagar,
+      mayorValor,
+      alicuota,
+    });
+
     const guardarEnDB = async () => {
       try {
         await fetch("/api/guardar-inscripcion", {
@@ -63,27 +90,39 @@ export default function Volante() {
             dni_cuit,
             apellido,
             nombre,
+            razon_social: datos_automotor?.razon_social || "",
+            provincia,
+            departamento,
             localidad,
             domicilio_calle,
             domicilio_nro,
+            telefono,
+            mail,
+            mail_repetir,
             tipo_dominio,
             dominio,
             origen,
             anio,
+            foto_titulo_url: datos_automotor?.foto_titulo_url || null,
+            cedula_frente_url: datos_automotor?.cedula_frente_url || null,
+            cedula_dorso_url: datos_automotor?.cedula_dorso_url || null,
             codigo_mtm,
             valor_fiscal: Number(valor_fiscal || 0),
             valor_declarado: Number(valor_declarado || 0),
+            forma_pago,
+            tipo_pago: cantidadMeses,
             mayor_valor: mayorValor,
             base_fija: baseFija,
+            meses: cantidadMeses,
             alicuota,
             base_variable: baseVariable,
-            tipo_pago: cantidadMeses,
             subtotal1,
             subtotal2,
             descuento,
             total: totalPagar,
           }),
         });
+        console.log("✅ Datos guardados correctamente");
       } catch (err) {
         console.error("❌ Error al guardar inscripción:", err);
       }
@@ -92,36 +131,7 @@ export default function Volante() {
     guardarEnDB();
   }, [datosCodigo]);
 
-  if (!datosCodigo) return <p className="text-center pt-20">Cargando...</p>;
-
-  const {
-    valor_fiscal,
-    valor_declarado,
-    tipo_pago,
-    apellido,
-    nombre,
-    localidad,
-    domicilio_calle,
-    domicilio_nro,
-    origen,
-    anio,
-    codigo_mtm,
-  } = datosCodigo;
-
-  const baseFija = 5000;
-  const alicuota = 0.003;
-  const mayorValor = Math.max(Number(valor_fiscal || 0), Number(valor_declarado || 0));
-  const baseVariable = mayorValor * alicuota;
-  const cantidadMeses = parseInt(tipo_pago.replace("mes", "").replace("es", ""));
-  const subtotal1 = baseFija;
-  const subtotal2 = baseVariable * cantidadMeses;
-  let totalPagar = subtotal1 + subtotal2;
-
-  let descuento = 0;
-  if (tipo_pago === "12meses") {
-    descuento = 0.1 * totalPagar;
-    totalPagar -= descuento;
-  }
+  if (!datosCodigo || !datosCalculo) return <p className="text-center pt-20">Cargando...</p>;
 
   return (
     <div className="min-h-screen bg-white text-black pt-10 px-4">
@@ -131,21 +141,47 @@ export default function Volante() {
 
       <h1 className="text-xl font-bold text-center mb-6">Paso 4: Volante de Pago</h1>
 
-      <div className="bg-gray-100 p-6 rounded-xl max-w-xl mx-auto text-sm space-y-3">
-        <p><strong>Mayor Valor:</strong> ${mayorValor.toLocaleString("es-AR")}</p>
-        <p><strong>Base Fija:</strong> ${baseFija.toLocaleString("es-AR")}</p>
-        <p><strong>Alicuota:</strong> {(alicuota * 100).toFixed(2)}%</p>
-        <p><strong>Base Variable:</strong> ${baseVariable.toLocaleString("es-AR")}</p>
-        <p><strong>Subtotal 1 (Base Fija):</strong> ${subtotal1.toLocaleString("es-AR")}</p>
-        <p><strong>Subtotal 2 (Base Variable x Meses):</strong> ${subtotal2.toLocaleString("es-AR")}</p>
-        {descuento > 0 && (
-          <p className="text-green-700 font-semibold">Descuento por pago anual: -${descuento.toLocaleString("es-AR")}</p>
+      <p className="text-center text-green-700 font-semibold mb-6">
+        Los datos fueron guardados correctamente en la base de datos.
+      </p>
+
+      <div className="max-w-xl mx-auto bg-gray-100 p-4 rounded-md shadow-md mb-6">
+        <h2 className="text-lg font-semibold mb-2">Datos del Contribuyente</h2>
+        <p><strong>Nombre:</strong> {datosCodigo.apellido} {datosCodigo.nombre}</p>
+        <p><strong>Documento:</strong> {datosCodigo.tipo_documento} {datosCodigo.dni_cuit}</p>
+        <p><strong>Domicilio:</strong> {datosCodigo.domicilio_calle} {datosCodigo.domicilio_nro}, {datosCodigo.localidad}</p>
+        <p><strong>Provincia:</strong> {datosCodigo.provincia}</p>
+        <p><strong>Email:</strong> {datosCodigo.mail}</p>
+      </div>
+
+      <div className="max-w-xl mx-auto bg-gray-100 p-4 rounded-md shadow-md mb-6">
+        <h2 className="text-lg font-semibold mb-2">Datos del Automotor</h2>
+        <p><strong>Dominio:</strong> {datosCodigo.dominio} ({datosCodigo.tipo_dominio})</p>
+        <p><strong>Origen:</strong> {datosCodigo.origen}</p>
+        <p><strong>Año:</strong> {datosCodigo.anio}</p>
+        <p><strong>Código MTM:</strong> {datosCodigo.codigo_mtm}</p>
+        <p><strong>Valor Fiscal:</strong> ${Number(datosCodigo.valor_fiscal || 0).toLocaleString()}</p>
+        <p><strong>Valor Declarado:</strong> ${Number(datosCodigo.valor_declarado || 0).toLocaleString()}</p>
+      </div>
+
+      <div className="max-w-xl mx-auto bg-gray-100 p-4 rounded-md shadow-md mb-8">
+        <h2 className="text-lg font-bold mb-2">Detalle del Cálculo</h2>
+
+        <p><strong>Alias para Pago:</strong> {aliasMunicipio}</p>
+        <p><strong>Valor Tomado (Mayor entre Fiscal y Declarado):</strong> ${datosCalculo.mayorValor.toLocaleString()}</p>
+        <p><strong>Alicuota:</strong> {(datosCalculo.alicuota * 100).toFixed(2)}%</p>
+        <p><strong>Base Fija:</strong> ${datosCalculo.baseFija.toLocaleString()}</p>
+        <p><strong>Base Variable ({datosCalculo.cantidadMeses} meses):</strong> ${datosCalculo.subtotal2.toLocaleString()}</p>
+
+        {datosCalculo.descuento > 0 && (
+          <p className="text-green-600 font-semibold">
+            <strong>Descuento:</strong> -${datosCalculo.descuento.toLocaleString()}
+          </p>
         )}
-        <p className="text-lg font-semibold"><strong>Total a Pagar:</strong> ${totalPagar.toLocaleString("es-AR")}</p>
-        <div className="mt-4">
-          <p><strong>Alias para Transferencia:</strong></p>
-          <p className="text-[#5b2b8c] text-lg font-bold">{aliasMunicipio}</p>
-        </div>
+
+        <p className="text-lg font-bold mt-2">
+          Total a Pagar: ${datosCalculo.totalPagar.toLocaleString()}
+        </p>
       </div>
 
       <div className="flex justify-between items-center mt-6 max-w-xl mx-auto">
