@@ -53,7 +53,7 @@ export default function Volante() {
     } = datosCodigo;
 
     const baseFija = 5000;
-    const alicuota = 0.003;
+    const alicuota = 0.001;
     const mayorValor = Math.max(Number(valor_fiscal || 0), Number(valor_declarado || 0));
     const baseVariable = mayorValor * alicuota;
     const cantidadMeses = parseInt(tipo_pago.replace("mes", "").replace("es", ""));

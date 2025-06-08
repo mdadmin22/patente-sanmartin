@@ -1,4 +1,4 @@
-// pages/alta.js
+// pages/alta.js 
 import { useRouter } from "next/router";
 import { useState } from "react";
 
@@ -16,6 +16,7 @@ export default function Alta() {
   const [telefono, setTelefono] = useState("");
   const [mail, setMail] = useState("");
   const [mailRepetir, setMailRepetir] = useState("");
+
   const [provincia, setProvincia] = useState("Chaco");
   const [departamento, setDepartamento] = useState("Ldor. Gral. San Martín");
   const [localidad, setLocalidad] = useState("Gral. José de San Martín");
@@ -65,11 +66,11 @@ export default function Alta() {
         </div>
 
         <div>
-          <label>DNI / CUIL / CUIT:</label>
           <input
             type="text"
             value={dniCuit}
             onChange={(e) => setDniCuit(e.target.value)}
+            placeholder={tipoDocumento === "CUIT" ? "CUIT empresa" : "DNI / CUIL"}
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
           />
         </div>
@@ -77,21 +78,21 @@ export default function Alta() {
         {(tipoDocumento === "DNI" || tipoDocumento === "CUIL") && (
           <>
             <div>
-              <label>Apellido:</label>
               <input
                 type="text"
                 value={apellido}
                 onChange={(e) => setApellido(e.target.value)}
+                placeholder="Apellido"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
               />
             </div>
 
             <div>
-              <label>Nombre:</label>
               <input
                 type="text"
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
+                placeholder="Nombre"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
               />
             </div>
@@ -100,16 +101,18 @@ export default function Alta() {
 
         {tipoDocumento === "CUIT" && (
           <div>
-            <label>Razón Social:</label>
             <input
               type="text"
               value={razonSocial}
               onChange={(e) => setRazonSocial(e.target.value)}
+              placeholder="Razón social"
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
             />
           </div>
         )}
 
+        {/* ❌ Provincia y Departamento ocultos */}
+        {/*
         <div>
           <label>Provincia:</label>
           <input
@@ -129,33 +132,41 @@ export default function Alta() {
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
           />
         </div>
+        */}
 
         <div>
           <label>Localidad:</label>
-          <input
-            type="text"
+          <select
             value={localidad}
             onChange={(e) => setLocalidad(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
-          />
+          >
+            <option value="Gral. José de San Martín">Gral. José de San Martín</option>
+            <option value="Pampa del Indio">Pampa del Indio</option>
+            <option value="La Eduvigis">La Eduvigis</option>
+            <option value="Selvas del Río de Oro">Selvas del Río de Oro</option>
+            <option value="Ciervo Petiso">Ciervo Petiso</option>
+            <option value="El Espinillo">El Espinillo</option>
+            <option value="Laguna Limpia">Laguna Limpia</option>
+          </select>
         </div>
 
         <div>
-          <label>Domicilio - Calle:</label>
           <input
             type="text"
             value={domicilioCalle}
             onChange={(e) => setDomicilioCalle(e.target.value)}
+            placeholder="Calle"
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
           />
         </div>
 
         <div>
-          <label>Domicilio - Número:</label>
           <input
             type="text"
             value={domicilioNro}
             onChange={(e) => setDomicilioNro(e.target.value)}
+            placeholder="Numeración"
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
           />
         </div>
