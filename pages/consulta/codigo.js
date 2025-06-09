@@ -43,11 +43,16 @@ export default function Paso3Codigo() {
 
         // ✅ unimos datos del automotor y del contribuyente
         const automotorFinal = {
-          ...(data.datosAutomotor || {}),
-          ...(datosPaso2 || {}),
-          origen: datosPaso2?.origen || "",
-          anio: datosPaso2?.anio || anio,
-        };
+  dominio: datosPaso2?.dominio || "",
+  tipo_dominio: datosPaso2?.tipo_dominio || "",
+  origen: datosPaso2?.origen || "",
+  anio: datosPaso2?.anio || anio,
+  codigo_mtm: data.datosAutomotor.codigoMTM || codigoMTM,
+  valor_fiscal: data.valorFiscal,
+  desc_marca: data.datosAutomotor.descMarca || "",
+  desc_modelo: data.datosAutomotor.descModelo || "",
+  desc_tipo: data.datosAutomotor.descTipo || "",
+};
 
         setDatosAutomotor(automotorFinal);
       } else {

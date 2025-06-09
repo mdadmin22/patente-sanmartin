@@ -184,14 +184,18 @@ export default function Volante() {
         <p><strong>Email:</strong> {datosCodigo.mail}</p>
       </div>
       <div className="max-w-xl mx-auto bg-gray-100 p-4 rounded-md shadow-md mb-6">
-        <h2 className="text-lg font-semibold mb-2">Datos del Automotor</h2>
-        <p><strong>Dominio:</strong> {datosCodigo.dominio} ({datosCodigo.tipo_dominio})</p>
-        <p><strong>Origen:</strong> {datosCodigo.origen}</p>
-        <p><strong>Año:</strong> {datosCodigo.anio}</p>
-        <p><strong>Código MTM:</strong> {datosCodigo.codigo_mtm}</p>
-        <p><strong>Valor Fiscal:</strong> ${Number(datosCodigo.valor_fiscal || 0).toLocaleString()}</p>
-        <p><strong>Valor Declarado:</strong> ${Number(datosCodigo.valor_declarado || 0).toLocaleString()}</p>
-      </div>
+<h2 className="text-lg font-semibold mb-2">Datos del Automotor</h2>
+<p><strong>Dominio:</strong> {datosCodigo.dominio} ({datosCodigo.tipo_dominio})</p>
+<p><strong>Marca:</strong> {datosCodigo.datos_automotor?.desc_marca || "—"}</p>
+<p><strong>Modelo:</strong> {datosCodigo.datos_automotor?.desc_modelo || "—"}</p>
+<p><strong>Tipo:</strong> {datosCodigo.datos_automotor?.desc_tipo || "—"}</p>
+<p><strong>Origen:</strong> {datosCodigo.origen}</p>
+<p><strong>Año:</strong> {datosCodigo.anio}</p>
+<p><strong>Código MTM:</strong> {datosCodigo.codigo_mtm}</p>
+<p><strong>Valor Fiscal:</strong> ${Number(datosCodigo.valor_fiscal || 0).toLocaleString()}</p>
+<p><strong>Valor Declarado:</strong> ${Number(datosCodigo.valor_declarado || 0).toLocaleString()}</p>
+</div>
+
       <div className="max-w-xl mx-auto bg-gray-100 p-4 rounded-md shadow-md mb-8">
         <h2 className="text-lg font-bold mb-2">Detalle del Cálculo</h2>
         <p><strong>Alias para Pago:</strong> {aliasMunicipio}</p>
