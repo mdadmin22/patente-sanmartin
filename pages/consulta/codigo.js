@@ -1,9 +1,16 @@
-// ✅ codigo.js completo y corregido
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 
 export default function Paso3Codigo() {
   const router = useRouter();
+
+  const [fabrica, setFabrica] = useState("");
+  const [marca, setMarca] = useState("");
+  const [modelo, setModelo] = useState("");
+
+  const [marcaImp, setMarcaImp] = useState("");
+  const [modeloImp, setModeloImp] = useState("");
+  const [tipoImp, setTipoImp] = useState("");
 
   const [codigoMTM, setCodigoMTM] = useState("");
   const [anio, setAnio] = useState("");
@@ -17,8 +24,6 @@ export default function Paso3Codigo() {
 
   useEffect(() => {
     const paso2 = JSON.parse(sessionStorage.getItem("datosPaso2"));
-    console.log("📦 datosPaso2:", paso2);
-
     if (paso2) {
       setDatosPaso2(paso2);
       setAnio(paso2.anio);
@@ -26,33 +31,42 @@ export default function Paso3Codigo() {
   }, []);
 
   const consultarValorFiscal = async () => {
-    if (!codigoMTM || !anio) {
-      alert("Por favor complete el código MTM/FMM y asegúrese de que el año esté disponible.");
-      return;
+    let codigoMTMFinal = "";
+
+    if (datosPaso2?.origen === "N") {
+      codigoMTMFinal = `${fabrica}${marca}${modelo}`.toUpperCase();
+      if (codigoMTMFinal.length < 7) {
+        alert("El código nacional debe tener 7 caracteres.");
+        return;
+      }
+    } else {
+      codigoMTMFinal = `${marcaImp}${modeloImp}${tipoImp}`;
+      if (codigoMTMFinal.length !== 8 || isNaN(codigoMTMFinal)) {
+        alert("El código importado debe tener 8 dígitos numéricos.");
+        return;
+      }
     }
 
-    try {
-      const res = await fetch(`/api/valorFiscal?codigo_mtm=${codigoMTM}&anio=${anio}`);
-      const data = await res.json();
+    setCodigoMTM(codigoMTMFinal);
 
-      console.log("🔍 Valor fiscal:", data.valorFiscal);
-      console.log("🚗 Datos automotor:", data.datosAutomotor);
+    try {
+      const res = await fetch(`/api/valorFiscal?codigo_mtm=${codigoMTMFinal}&anio=${anio}`);
+      const data = await res.json();
 
       if (data && data.valorFiscal) {
         setValorFiscal(data.valorFiscal);
 
-        // ✅ unimos datos del automotor y del contribuyente
         const automotorFinal = {
-  dominio: datosPaso2?.dominio || "",
-  tipo_dominio: datosPaso2?.tipo_dominio || "",
-  origen: datosPaso2?.origen || "",
-  anio: datosPaso2?.anio || anio,
-  codigo_mtm: data.datosAutomotor.codigoMTM || codigoMTM,
-  valor_fiscal: data.valorFiscal,
-  desc_marca: data.datosAutomotor.descMarca || "",
-  desc_modelo: data.datosAutomotor.descModelo || "",
-  desc_tipo: data.datosAutomotor.descTipo || "",
-};
+          dominio: datosPaso2?.dominio || "",
+          tipo_dominio: datosPaso2?.tipo_dominio || "",
+          origen: datosPaso2?.origen || "",
+          anio: datosPaso2?.anio || anio,
+          codigo_mtm: data.datosAutomotor.codigoMTM || codigoMTMFinal,
+          valor_fiscal: data.valorFiscal,
+          desc_marca: data.datosAutomotor.descMarca || "",
+          desc_modelo: data.datosAutomotor.descModelo || "",
+          desc_tipo: data.datosAutomotor.descTipo || "",
+        };
 
         setDatosAutomotor(automotorFinal);
       } else {
@@ -68,11 +82,8 @@ export default function Paso3Codigo() {
     const mayor_valor = Math.max(
       Number(valorFiscal || 0),
       Number(valorDeclarado || 0)
-      
     );
-console.log("📤 Enviando a volante:", {
-  datos_automotor: datosAutomotor
-});
+
     const datosCodigo = {
       codigo_mtm: codigoMTM,
       anio,
@@ -81,7 +92,7 @@ console.log("📤 Enviando a volante:", {
       forma_pago: formaPago,
       tipo_pago: tipoPago,
       mayor_valor,
-      datos_automotor: datosAutomotor, // ✅ se guarda todo en datos_automotor
+      datos_automotor: datosAutomotor,
     };
 
     sessionStorage.setItem("datosCodigo", JSON.stringify(datosCodigo));
@@ -106,15 +117,67 @@ console.log("📤 Enviando a volante:", {
           </div>
         )}
 
-        <div>
-          <label>Código MTM/FMM:</label>
-          <input
-            type="text"
-            value={codigoMTM}
-            onChange={(e) => setCodigoMTM(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-          />
-        </div>
+        {datosPaso2?.origen === "N" ? (
+          <>
+            <label>Código Automotor Nacional:</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                maxLength={3}
+                placeholder="Fábrica (3)"
+                className="w-1/3 px-3 py-2 border border-gray-300 rounded-md"
+                value={fabrica}
+                onChange={(e) => setFabrica(e.target.value.toUpperCase())}
+              />
+              <input
+                type="text"
+                maxLength={2}
+                placeholder="Marca (2)"
+                className="w-1/3 px-3 py-2 border border-gray-300 rounded-md"
+                value={marca}
+                onChange={(e) => setMarca(e.target.value.toUpperCase())}
+              />
+              <input
+                type="text"
+                maxLength={2}
+                placeholder="Modelo (2)"
+                className="w-1/3 px-3 py-2 border border-gray-300 rounded-md"
+                value={modelo}
+                onChange={(e) => setModelo(e.target.value.toUpperCase())}
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            <label>Código Automotor Importado:</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                maxLength={3}
+                placeholder="Marca (3)"
+                className="w-1/3 px-3 py-2 border border-gray-300 rounded-md"
+                value={marcaImp}
+                onChange={(e) => setMarcaImp(e.target.value)}
+              />
+              <input
+                type="text"
+                maxLength={3}
+                placeholder="Modelo (3)"
+                className="w-1/3 px-3 py-2 border border-gray-300 rounded-md"
+                value={modeloImp}
+                onChange={(e) => setModeloImp(e.target.value)}
+              />
+              <input
+                type="text"
+                maxLength={2}
+                placeholder="Tipo (2)"
+                className="w-1/3 px-3 py-2 border border-gray-300 rounded-md"
+                value={tipoImp}
+                onChange={(e) => setTipoImp(e.target.value)}
+              />
+            </div>
+          </>
+        )}
 
         <div>
           <label>Año:</label>
