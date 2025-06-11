@@ -16,12 +16,20 @@ export default function Alta() {
   const [telefono, setTelefono] = useState("");
   const [mail, setMail] = useState("");
   const [mailRepetir, setMailRepetir] = useState("");
+  const [errorMail, setErrorMail] = useState("");
 
   const [provincia, setProvincia] = useState("Chaco");
   const [departamento, setDepartamento] = useState("Ldor. Gral. San Martín");
   const [localidad, setLocalidad] = useState("Gral. José de San Martín");
 
   const handleSiguiente = () => {
+    if (mail !== mailRepetir) {
+      setErrorMail("⚠️ Los correos ingresados no coinciden.");
+      return;
+    }
+
+    setErrorMail("");
+
     const datosTitular = {
       tipo_tramite: tipoTramite,
       tipo_documento: tipoDocumento,
@@ -36,7 +44,7 @@ export default function Alta() {
       mail_repetir: mailRepetir,
       provincia,
       departamento,
-      localidad
+      localidad,
     };
 
     sessionStorage.setItem("datosTitular", JSON.stringify(datosTitular));
@@ -49,7 +57,9 @@ export default function Alta() {
 
   return (
     <div className="min-h-screen bg-[#f0f0f0] text-black pt-10 px-4">
-      <h1 className="text-2xl font-bold text-center mb-6">Paso 1: Datos del Contribuyente</h1>
+      <h1 className="text-2xl font-bold text-center mb-6">
+        Paso 1: Datos del Contribuyente
+      </h1>
 
       <div className="max-w-xl mx-auto space-y-4 bg-white p-6 rounded-md shadow-md">
         <div>
@@ -112,7 +122,7 @@ export default function Alta() {
         )}
 
         {/* ❌ Provincia y Departamento ocultos */}
-        {/*
+        {/* 
         <div>
           <label>Provincia:</label>
           <input
@@ -197,8 +207,13 @@ export default function Alta() {
             type="email"
             value={mailRepetir}
             onChange={(e) => setMailRepetir(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            className={`w-full px-3 py-2 border rounded-md ${
+              errorMail ? "border-red-500" : "border-gray-300"
+            }`}
           />
+          {errorMail && (
+            <p className="text-red-600 text-sm mt-1">{errorMail}</p>
+          )}
         </div>
 
         <div className="flex justify-between pt-4">

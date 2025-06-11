@@ -40,11 +40,17 @@ export default function Paso3Codigo() {
         return;
       }
     } else {
-      codigoMTMFinal = `${marcaImp}${modeloImp}${tipoImp}`;
-      if (codigoMTMFinal.length !== 8 || isNaN(codigoMTMFinal)) {
-        alert("El código importado debe tener 8 dígitos numéricos.");
+      // ✅ CORRECCIÓN: Marca (3) + Tipo (2) + Modelo (3)
+      if (
+        marcaImp.length !== 3 ||
+        tipoImp.length !== 2 ||
+        modeloImp.length !== 3
+      ) {
+        alert("El código importado debe tener formato Marca (3) + Tipo (2) + Modelo (3)");
         return;
       }
+
+      codigoMTMFinal = `${marcaImp}${tipoImp}${modeloImp}`;
     }
 
     setCodigoMTM(codigoMTMFinal);

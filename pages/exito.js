@@ -9,7 +9,6 @@ export default function Exito() {
 
   useEffect(() => {
     const { external_reference } = router.query;
-
     if (!external_reference) return;
 
     const obtenerDatos = async () => {
@@ -19,6 +18,23 @@ export default function Exito() {
 
         if (data && data.id) {
           setInscripcion(data);
+
+          // Obtener descripciones del automotor
+          try {
+            const resValor = await fetch(`/api/valorFiscal?codigo_mtm=${data.codigo_mtm}&anio=${data.anio}`);
+            const datos = await resValor.json();
+            if (datos && datos.datosAutomotor) {
+              setInscripcion(prev => ({
+                ...prev,
+                desc_marca: datos.datosAutomotor.descMarca,
+                desc_modelo: datos.datosAutomotor.descModelo,
+                desc_tipo: datos.datosAutomotor.descTipo,
+              }));
+            }
+          } catch (err) {
+            console.error("❌ Error al obtener descripción del automotor:", err);
+          }
+
         } else {
           console.warn("❌ No se encontró la inscripción");
         }
@@ -43,8 +59,6 @@ export default function Exito() {
   if (cargando) return <p className="text-center pt-20">Cargando comprobante...</p>;
   if (!inscripcion) return <p className="text-center pt-20 text-red-600">No se pudo cargar el comprobante.</p>;
 
-  const subtotalCalculado = (parseFloat(inscripcion.base_fija || 0) + parseFloat(inscripcion.base_variable || 0)) - parseFloat(inscripcion.descuento || 0);
-
   return (
     <div className="min-h-screen bg-white text-black pt-10 px-4">
       <div className="flex justify-center mb-4">
@@ -66,21 +80,30 @@ export default function Exito() {
         <p><strong>Origen:</strong> {inscripcion.origen}</p>
         <p><strong>Año:</strong> {inscripcion.anio}</p>
         <p><strong>Código MTM:</strong> {inscripcion.codigo_mtm}</p>
-        <p><strong>Valor Fiscal:</strong> ${Number(inscripcion.valor_fiscal || 0).toLocaleString()}</p>
-        <p><strong>Valor Declarado:</strong> ${Number(inscripcion.valor_declarado || 0).toLocaleString()}</p>
+        {inscripcion.desc_marca && (
+          <>
+            <p><strong>Marca:</strong> {inscripcion.desc_marca}</p>
+            <p><strong>Modelo:</strong> {inscripcion.desc_modelo}</p>
+            {inscripcion.desc_tipo && <p><strong>Tipo:</strong> {inscripcion.desc_tipo}</p>}
+          </>
+        )}
 
-        <h2 className="text-lg font-semibold mt-6 mb-2">Detalle del Pago</h2>
-        <p><strong>Forma de Pago:</strong> MercadoPago</p>
-        <p><strong>Tipo de Pago:</strong> {inscripcion.tipo_pago} meses</p>
-        <p><strong>Base Fija:</strong> ${Number(inscripcion.base_fija).toLocaleString()}</p>
-        <p><strong>Base Variable:</strong> ${Number(inscripcion.base_variable).toLocaleString()}</p>
-        <p><strong>Subtotal:</strong> ${subtotalCalculado.toLocaleString()}</p>
+        <h2 className="text-lg font-semibold mt-6 mb-2">Detalle del Cálculo</h2>
+        <p><strong>Alias para Pago:</strong> MUNICIPIO.SANMARTIN.MP</p>
+        <p><strong>Valor Tomado (Mayor entre Fiscal y Declarado):</strong> ${Number(inscripcion.mayor_valor || 0).toLocaleString()}</p>
         {inscripcion.descuento > 0 && (
           <p className="text-green-700"><strong>Descuento aplicado:</strong> -${Number(inscripcion.descuento).toLocaleString()}</p>
         )}
+        <p className="text-lg font-bold mt-2"><strong>Total a Pagar:</strong> ${Number(inscripcion.total).toLocaleString()}</p>
+
+        <h2 className="text-lg font-semibold mt-6 mb-2">Datos del Pago</h2>
+        <p><strong>Forma de Pago:</strong> MercadoPago</p>
         <p><strong>Fecha de Pago:</strong> {new Date(inscripcion.fecha_pago).toLocaleString()}</p>
         <p><strong>ID de Pago:</strong> {inscripcion.payment_id_mercadopago}</p>
-        <p className="text-lg font-bold mt-2">Total Pagado: ${Number(inscripcion.total).toLocaleString()}</p>
+
+        <div className="text-lg font-bold mt-4 text-center">
+          Total Pagado: ${Number(inscripcion.total).toLocaleString()}
+        </div>
 
         <div className="mt-6 flex justify-center space-x-4">
           <button
