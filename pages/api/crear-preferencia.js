@@ -1,3 +1,4 @@
+// pages/api/crear-preferencia.js
 import { MercadoPagoConfig, Preference } from 'mercadopago';
 
 const mp = new MercadoPagoConfig({ accessToken: process.env.MERCADOPAGO_TOKEN });
@@ -30,13 +31,14 @@ export default async function handler(req, res) {
         ],
         external_reference: String(inscripcion_id),
         back_urls: {
-          success: "https://tusitio.com/exito",
-          failure: "https://tusitio.com/fallo",
-          pending: "https://tusitio.com/pendiente",
+          success: "https://4404-190-183-203-40.ngrok-free.app/exito",
+          failure: "https://4404-190-183-203-40.ngrok-free.app/fallo",
+          pending: "https://4404-190-183-203-40.ngrok-free.app/pendiente",
         },
         auto_return: "approved",
+        notification_url: "https://4404-190-183-203-40.ngrok-free.app/api/webhook", // ✅ Esta línea es la clave
         payer: {
-          email: "TESTUSER1285526912", // 🔁 Cambiar por el email del test comprador
+          email: "TESTUSER1285526912", // Puedes cambiar esto por el email del comprador real
         },
       },
     });

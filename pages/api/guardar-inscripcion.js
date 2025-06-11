@@ -51,7 +51,7 @@ export default async function handler(req, res) {
       total,
     } = req.body;
 
-    await client.query(
+    const result = await client.query(
       `
       INSERT INTO inscripciones (
         tipo_tramite, apellido, nombre, razon_social, tipo_documento, dni_cuit,
@@ -68,6 +68,7 @@ export default async function handler(req, res) {
         $27, $28, $29, $30, $31,
         $32, $33, $34, $35, NOW()
       )
+      RETURNING id
       `,
       [
         tipo_tramite, apellido, nombre, razon_social, tipo_documento, dni_cuit,
@@ -79,7 +80,13 @@ export default async function handler(req, res) {
       ]
     );
 
-    res.status(200).json({ mensaje: "✅ Datos guardados correctamente" });
+    const id = result.rows[0]?.id;
+
+    if (!id) {
+      throw new Error("No se pudo obtener el ID generado");
+    }
+
+    res.status(200).json({ id });
   } catch (error) {
     console.error("❌ Error al guardar en la base:", error);
     res.status(500).json({ error: "Error al guardar en la base" });

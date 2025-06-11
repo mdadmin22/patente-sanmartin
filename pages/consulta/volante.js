@@ -1,3 +1,4 @@
+// pages/volante.js
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -6,8 +7,8 @@ export default function Volante() {
   const [datosCodigo, setDatosCodigo] = useState(null);
   const [aliasMunicipio] = useState("MUNICIPIO.SANMARTIN.MP");
   const [datosCalculo, setDatosCalculo] = useState(null);
-  const [pagoUrl, setPagoUrl] = useState(null);
   const [cargandoPago, setCargandoPago] = useState(false);
+  const [alreadySaved, setAlreadySaved] = useState(false);
 
   useEffect(() => {
     const datos = JSON.parse(sessionStorage.getItem("datosCodigo"));
@@ -25,7 +26,7 @@ export default function Volante() {
   }, []);
 
   useEffect(() => {
-    if (!datosCodigo) return;
+    if (!datosCodigo || alreadySaved) return;
 
     const {
       valor_fiscal,
@@ -86,7 +87,7 @@ export default function Volante() {
 
     const guardarEnDB = async () => {
       try {
-        await fetch("/api/guardar-inscripcion", {
+        const res = await fetch("/api/guardar-inscripcion", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -127,14 +128,23 @@ export default function Volante() {
             total: totalPagar,
           }),
         });
-        console.log("✅ Datos guardados correctamente");
+
+        const data = await res.json();
+
+        if (data.id) {
+          console.log("✅ Inscripción creada con ID:", data.id);
+          setDatosCodigo(prev => ({ ...prev, id: data.id }));
+          setAlreadySaved(true);
+        } else {
+          console.warn("⚠️ No se recibió un ID de inscripción");
+        }
       } catch (err) {
         console.error("❌ Error al guardar inscripción:", err);
       }
     };
 
     guardarEnDB();
-  }, [datosCodigo]);
+  }, [datosCodigo, alreadySaved]);
 
   const generarPago = async () => {
     setCargandoPago(true);
@@ -149,8 +159,10 @@ export default function Volante() {
           dominio: datosCodigo.dominio,
         }),
       });
+
       const data = await res.json();
       console.log("🔗 init_point recibido:", data.init_point);
+
       if (data.init_point) {
         window.location.href = data.init_point;
       } else {
@@ -184,18 +196,17 @@ export default function Volante() {
         <p><strong>Email:</strong> {datosCodigo.mail}</p>
       </div>
       <div className="max-w-xl mx-auto bg-gray-100 p-4 rounded-md shadow-md mb-6">
-<h2 className="text-lg font-semibold mb-2">Datos del Automotor</h2>
-<p><strong>Dominio:</strong> {datosCodigo.dominio} ({datosCodigo.tipo_dominio})</p>
-<p><strong>Marca:</strong> {datosCodigo.datos_automotor?.desc_marca || "—"}</p>
-<p><strong>Modelo:</strong> {datosCodigo.datos_automotor?.desc_modelo || "—"}</p>
-<p><strong>Tipo:</strong> {datosCodigo.datos_automotor?.desc_tipo || "—"}</p>
-<p><strong>Origen:</strong> {datosCodigo.origen}</p>
-<p><strong>Año:</strong> {datosCodigo.anio}</p>
-<p><strong>Código MTM:</strong> {datosCodigo.codigo_mtm}</p>
-<p><strong>Valor Fiscal:</strong> ${Number(datosCodigo.valor_fiscal || 0).toLocaleString()}</p>
-<p><strong>Valor Declarado:</strong> ${Number(datosCodigo.valor_declarado || 0).toLocaleString()}</p>
-</div>
-
+        <h2 className="text-lg font-semibold mb-2">Datos del Automotor</h2>
+        <p><strong>Dominio:</strong> {datosCodigo.dominio} ({datosCodigo.tipo_dominio})</p>
+        <p><strong>Marca:</strong> {datosCodigo.datos_automotor?.desc_marca || "—"}</p>
+        <p><strong>Modelo:</strong> {datosCodigo.datos_automotor?.desc_modelo || "—"}</p>
+        <p><strong>Tipo:</strong> {datosCodigo.datos_automotor?.desc_tipo || "—"}</p>
+        <p><strong>Origen:</strong> {datosCodigo.origen}</p>
+        <p><strong>Año:</strong> {datosCodigo.anio}</p>
+        <p><strong>Código MTM:</strong> {datosCodigo.codigo_mtm}</p>
+        <p><strong>Valor Fiscal:</strong> ${Number(datosCodigo.valor_fiscal || 0).toLocaleString()}</p>
+        <p><strong>Valor Declarado:</strong> ${Number(datosCodigo.valor_declarado || 0).toLocaleString()}</p>
+      </div>
       <div className="max-w-xl mx-auto bg-gray-100 p-4 rounded-md shadow-md mb-8">
         <h2 className="text-lg font-bold mb-2">Detalle del Cálculo</h2>
         <p><strong>Alias para Pago:</strong> {aliasMunicipio}</p>

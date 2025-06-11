@@ -33,8 +33,12 @@ export default async function handler(req, res) {
     console.log("🧮 Valores:", fila);
 
     // Obtener valor fiscal según el año solicitado
-    const columnaAnio = `anio_${anio}`;
-    const valorFiscal = fila[columnaAnio] || "0";
+    const columnaAnio = `anio_${anio?.toString().trim()}`;
+      if (!(columnaAnio in fila)) {
+        return res.status(404).json({ error: `No se encontró valor fiscal para el año ${anio}` });
+    }
+    const valorFiscal = fila[columnaAnio];
+
 
     return res.status(200).json({
       valorFiscal,
