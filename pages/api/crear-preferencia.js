@@ -31,12 +31,12 @@ export default async function handler(req, res) {
         ],
         external_reference: String(inscripcion_id),
         back_urls: {
-          success: "https://72eb-190-183-203-40.ngrok-free.app/exito",
+          success: "https://2e1b-190-183-203-54.ngrok-free.app/exito",
           failure: "https://4404-190-183-203-40.ngrok-free.app/fallo",
           pending: "https://4404-190-183-203-40.ngrok-free.app/pendiente",
         },
         auto_return: "approved",
-        notification_url: "https://72eb-190-183-203-40.ngrok-free.app/api/webhook", // ✅ Esta línea es la clave
+        notification_url: "https://2e1b-190-183-203-54.ngrok-free.app/api/webhook", // ✅ Esta línea es la clave
         payer: {
           email: "TESTUSER1285526912", // Puedes cambiar esto por el email del comprador real
         },
