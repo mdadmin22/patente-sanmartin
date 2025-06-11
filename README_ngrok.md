@@ -25,3 +25,8 @@ notification_url: "https://TU_URL_NGROK/api/webhook",
 - Usá https, ngrok lo ofrece por defecto.
 - Si tenés cuenta en ngrok podés configurar un subdominio estático.
 - Recordá reiniciar ngrok cada vez que cambies de red, de computadora o cierres la terminal.
+
+
+npx ngrok config add-authtoken TU_AUTHTOKEN
+
+npx ngrok http 3000
