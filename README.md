@@ -46,6 +46,7 @@ cd patente-sanmartin
 ```bash
 npm install
 ```
+npm install bcryptjs jsonwebtoken
 
 3. Crear un archivo `.env.local` en la raíz del proyecto (ver ejemplo abajo).
 
