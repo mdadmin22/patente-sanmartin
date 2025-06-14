@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken';
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { email, clave } = req.body;
+  const { email, password } = req.body;
 
   const client = new Client({ connectionString: process.env.DATABASE_URL });
   await client.connect();
@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     if (result.rows.length === 0) return res.json({ success: false });
 
     const user = result.rows[0];
-    const match = await bcrypt.compare(clave, user.contraseña_hash);
+    const match = await bcrypt.compare(password, user.contraseña_hash);
 
     if (!match) return res.json({ success: false });
 
