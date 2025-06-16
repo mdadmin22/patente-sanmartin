@@ -21,7 +21,8 @@ Este documento resume las funcionalidades implementadas, en desarrollo y pendien
 |--------|-------|
 | ✅ | Vista `/admin/tramites` con listado completo de trámites |
 | ✅ | Mostrar datos personales y vehiculares en tabla |
-| ✅ | Formateo de montos en moneda argentina |
+| ✅ | pagina de los usuarios
+| ⏳ | Formateo de montos en moneda argentina |
 | ✅ | Botones de aprobación (`✅`) y rechazo (`❌`) funcionales |
 | ✅ | Actualización inmediata de estado en frontend y backend |
 | ⏳ | Filtros por tipo de trámite, estado o dominio |

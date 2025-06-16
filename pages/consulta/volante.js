@@ -1,4 +1,3 @@
-// pages/volante.js
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -9,6 +8,7 @@ export default function Volante() {
   const [datosCalculo, setDatosCalculo] = useState(null);
   const [cargandoPago, setCargandoPago] = useState(false);
   const [alreadySaved, setAlreadySaved] = useState(false);
+  const [inscripcionId, setInscripcionId] = useState(null);
 
   useEffect(() => {
     const datos = JSON.parse(sessionStorage.getItem("datosCodigo"));
@@ -133,7 +133,7 @@ export default function Volante() {
 
         if (data.id) {
           console.log("✅ Inscripción creada con ID:", data.id);
-          setDatosCodigo(prev => ({ ...prev, id: data.id }));
+          setInscripcionId(data.id);
           setAlreadySaved(true);
         } else {
           console.warn("⚠️ No se recibió un ID de inscripción");
@@ -153,7 +153,7 @@ export default function Volante() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          inscripcion_id: datosCodigo?.id || 0,
+          inscripcion_id: inscripcionId,
           nombre: `${datosCodigo.apellido} ${datosCodigo.nombre}`,
           monto: datosCalculo?.totalPagar || 0,
           dominio: datosCodigo.dominio,
@@ -163,7 +163,10 @@ export default function Volante() {
       const data = await res.json();
       console.log("🔗 init_point recibido:", data.init_point);
 
+      
+
       if (data.init_point) {
+        sessionStorage.setItem("external_reference", inscripcionId); // ✅ Guardar ID antes de redirigir
         window.location.href = data.init_point;
       } else {
         alert("No se pudo generar el link de pago. Intente nuevamente.");
@@ -223,7 +226,9 @@ export default function Volante() {
           Total a Pagar: ${datosCalculo.totalPagar.toLocaleString()}
         </p>
         <div className="mt-6 text-center">
-          {cargandoPago ? (
+          {!inscripcionId ? (
+            <p className="text-sm text-red-500">Guardando inscripción...</p>
+          ) : cargandoPago ? (
             <div className="flex flex-col items-center gap-2 text-blue-700 font-semibold">
               <svg className="animate-spin h-6 w-6 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

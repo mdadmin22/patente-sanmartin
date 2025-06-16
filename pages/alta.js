@@ -1,9 +1,11 @@
 // pages/alta.js 
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
 
 export default function Alta() {
   const router = useRouter();
+  const origen = router.query.origen;
 
   const [tipoTramite, setTipoTramite] = useState("ALTA");
   const [tipoDocumento, setTipoDocumento] = useState("DNI");
@@ -27,8 +29,12 @@ export default function Alta() {
       setErrorMail("⚠️ Los correos ingresados no coinciden.");
       return;
     }
+    
 
     setErrorMail("");
+
+    const creadoPor = origen === 'municipio' ? 'Municipio' : 'Contribuyente';
+
 
     const datosTitular = {
       tipo_tramite: tipoTramite,
@@ -45,6 +51,7 @@ export default function Alta() {
       provincia,
       departamento,
       localidad,
+      creado_por: creadoPor  // ✅ NUEVO CAMPO GUARDADO
     };
 
     sessionStorage.setItem("datosTitular", JSON.stringify(datosTitular));

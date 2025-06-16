@@ -61,7 +61,7 @@ export default function Usuarios() {
 
     const res = await axios.post<CrearUsuarioResponse>(
     '/api/crear-usuario',
-    { nombre, email, clave, rol },
+    { nombre, email, contraseña: clave, rol },
     { headers: { Authorization: `Bearer ${token}` } }
     );
 

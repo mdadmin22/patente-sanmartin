@@ -7,15 +7,17 @@ export default function CrearUsuario() {
   const [email, setEmail] = useState('');
   const [rol, setRol] = useState('admin');
   const [password, setPassword] = useState('');
+  const [nombre, setNombre] = useState('');
   const router = useRouter();
 
   const handleSubmit = async () => {
     try {
       const token = localStorage.getItem('token');
       await axios.post('/api/crear-usuario', {
+        nombre,
         email,
         rol,
-        password
+        contraseña: password,
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -32,6 +34,16 @@ export default function CrearUsuario() {
       <h1 className="text-2xl font-bold mb-4">Crear nuevo usuario</h1>
       <div className="space-y-4">
         <div>
+          <div>
+  <label>Nombre completo:</label>
+  <input
+    className="block w-full p-2 rounded text-black"
+    type="text"
+    value={nombre}
+    onChange={(e) => setNombre(e.target.value)}
+  />
+</div>
+
           <label>Email:</label>
           <input
             className="block w-full p-2 rounded text-black"

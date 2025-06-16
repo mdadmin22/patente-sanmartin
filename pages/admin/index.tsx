@@ -45,10 +45,33 @@ export default function AdminInicio() {
           </button>
 
           <button
-            onClick={() => router.push('/admin/crear-usuario')}
+            onClick={() => router.push('/admin/usuarios')}
             className="w-full bg-white text-[#5b2b8c] font-bold py-2 px-6 rounded-md shadow-md hover:shadow-xl hover:-translate-y-1"
           >
-            ➕ Crear nuevo usuario
+            👥 Listado de Operadores
+          </button>
+
+          {/* 🔽 NUEVOS BOTONES PARA TRÁMITES PRESENCIALES */}
+
+          <button
+            onClick={() => router.push('/alta?origen=municipio')}
+            className="w-full bg-white text-[#5b2b8c] font-bold py-2 px-6 rounded-md shadow-md hover:shadow-xl hover:-translate-y-1"
+          >
+            ➕ Alta presencial
+          </button>
+
+          <button
+            onClick={() => router.push('/transferencia?origen=municipio')}
+            className="w-full bg-white text-[#5b2b8c] font-bold py-2 px-6 rounded-md shadow-md hover:shadow-xl hover:-translate-y-1"
+          >
+            🔁 Transferencia presencial
+          </button>
+
+          <button
+            onClick={() => router.push('/baja?origen=municipio')}
+            className="w-full bg-white text-[#5b2b8c] font-bold py-2 px-6 rounded-md shadow-md hover:shadow-xl hover:-translate-y-1"
+          >
+            🔻 Baja presencial
           </button>
         </div>
       </div>

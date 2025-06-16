@@ -1,3 +1,4 @@
+//pages/exito.js
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Image from "next/image";
@@ -8,12 +9,20 @@ export default function Exito() {
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
+    // ✅ MODIFICACIÓN: tomar external_reference desde query o sessionStorage
     const { external_reference } = router.query;
-    if (!external_reference) return;
+    const referencia = external_reference || sessionStorage.getItem("external_reference");
+
+     // ✅ Limpieza segura de sessionStorage
+    if (!external_reference && referencia) {
+      sessionStorage.removeItem("external_reference");
+    }
+
+    if (!referencia) return;
 
     const obtenerDatos = async () => {
       try {
-        const res = await fetch(`/api/inscripcion?id=${external_reference}`);
+        const res = await fetch(`/api/inscripcion?id=${referencia}`);
         const data = await res.json();
 
         if (data && data.id) {
