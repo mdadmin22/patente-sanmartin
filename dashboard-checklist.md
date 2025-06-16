@@ -4,6 +4,13 @@ Este documento resume las funcionalidades implementadas, en desarrollo y pendien
 
 ---
 
+
+
+## 🔐 0. GitHub
+
+1.Después de esto, los cambios estarán disponibles en GitHub (o el servicio que uses). Crear el pull request más adelante para fusionar esta rama con main.
+
+
 ## 🔐 1. Autenticación y Seguridad
 
 | Estado | Tarea |
