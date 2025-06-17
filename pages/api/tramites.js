@@ -38,7 +38,7 @@ export default async function handler(req, res) {
         domicilio_calle,
         domicilio_nro
       FROM inscripciones
-      ORDER BY creado_en DESC
+      ORDER BY id DESC
     `);
 
     res.json({ success: true, tramites: resultado.rows });
