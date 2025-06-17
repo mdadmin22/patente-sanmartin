@@ -1,3 +1,4 @@
+//pages/consulta/volante.js
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -87,6 +88,11 @@ export default function Volante() {
 
     const guardarEnDB = async () => {
       try {
+
+        // ✅ MODIFICADO: recuperar creado_por desde datosTitular en sessionStorage
+        const datosTitular = JSON.parse(sessionStorage.getItem("datosTitular"));
+        const creado_por = datosTitular?.creado_por || "contribuyente";
+        
         const res = await fetch("/api/guardar-inscripcion", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -126,6 +132,7 @@ export default function Volante() {
             subtotal2,
             descuento,
             total: totalPagar,
+            creado_por // ✅ MODIFICADO: ahora sí se envía correctamente
           }),
         });
 

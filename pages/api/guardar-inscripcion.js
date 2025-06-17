@@ -13,7 +13,7 @@ export default async function handler(req, res) {
   try {
     await client.connect();
 
-    const {
+    let {
       tipo_tramite,
       apellido,
       nombre,
@@ -49,8 +49,13 @@ export default async function handler(req, res) {
       subtotal2,
       descuento,
       total,
-      creado_por
+      creado_por,
     } = req.body;
+
+    // ✅ Validación estricta del campo creado_por
+    if (creado_por !== "municipio" && creado_por !== "contribuyente") {
+      creado_por = "contribuyente"; // valor por defecto si viene mal o nulo
+    }
 
     const result = await client.query(
       `
@@ -67,7 +72,7 @@ export default async function handler(req, res) {
         $15, $16, $17, $18, $19, $20, $21,
         $22, $23, $24, $25, $26,
         $27, $28, $29, $30, $31,
-        $32, $33, $34, $35, $36, NOW()
+        $32, $33, $34, $35, NOW(), $36
       )
       RETURNING id
       `,
@@ -77,7 +82,8 @@ export default async function handler(req, res) {
         tipo_dominio, dominio, origen, anio, foto_titulo_url, cedula_frente_url, cedula_dorso_url,
         codigo_mtm, valor_fiscal, valor_declarado, forma_pago, tipo_pago,
         mayor_valor, base_fija, meses, alicuota, base_variable,
-        subtotal1, subtotal2, descuento, total, creado_por
+        subtotal1, subtotal2, descuento, total,
+        creado_por, // $36
       ]
     );
 

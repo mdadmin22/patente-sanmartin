@@ -2,10 +2,19 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
-
 export default function Alta() {
   const router = useRouter();
-  const origen = router.query.origen;
+
+  // ✅ MODIFICADO: Estado robusto para origenFinal (en vez de leer directamente router.query.origen)
+  const [origenFinal, setOrigenFinal] = useState("contribuyente");
+
+  useEffect(() => {
+    if (router.query.origen === "municipio") {
+      setOrigenFinal("municipio");
+    } else {
+      setOrigenFinal("contribuyente");
+    }
+  }, [router.query.origen]);
 
   const [tipoTramite, setTipoTramite] = useState("ALTA");
   const [tipoDocumento, setTipoDocumento] = useState("DNI");
@@ -29,12 +38,11 @@ export default function Alta() {
       setErrorMail("⚠️ Los correos ingresados no coinciden.");
       return;
     }
-    
 
     setErrorMail("");
 
-    const creadoPor = origen === 'municipio' ? 'Municipio' : 'Contribuyente';
-
+    // ✅ MODIFICADO: usar origenFinal en lugar de router.query.origen directamente
+    const creadoPor = origenFinal;
 
     const datosTitular = {
       tipo_tramite: tipoTramite,
@@ -51,7 +59,7 @@ export default function Alta() {
       provincia,
       departamento,
       localidad,
-      creado_por: creadoPor  // ✅ NUEVO CAMPO GUARDADO
+      creado_por: creadoPor, // ✅ Este campo se guarda correctamente ahora
     };
 
     sessionStorage.setItem("datosTitular", JSON.stringify(datosTitular));
@@ -127,29 +135,6 @@ export default function Alta() {
             />
           </div>
         )}
-
-        {/* ❌ Provincia y Departamento ocultos */}
-        {/* 
-        <div>
-          <label>Provincia:</label>
-          <input
-            type="text"
-            value={provincia}
-            onChange={(e) => setProvincia(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-          />
-        </div>
-
-        <div>
-          <label>Departamento:</label>
-          <input
-            type="text"
-            value={departamento}
-            onChange={(e) => setDepartamento(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-          />
-        </div>
-        */}
 
         <div>
           <label>Localidad:</label>
