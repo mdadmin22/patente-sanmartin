@@ -1,4 +1,4 @@
-//pages/exito.js
+// pages/exito.js
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Image from "next/image";
@@ -6,19 +6,20 @@ import Image from "next/image";
 export default function Exito() {
   const router = useRouter();
   const [inscripcion, setInscripcion] = useState(null);
+  const [inscripcionId, setInscripcionId] = useState(null); // ✅ ID del trámite
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    // ✅ MODIFICACIÓN: tomar external_reference desde query o sessionStorage
     const { external_reference } = router.query;
     const referencia = external_reference || sessionStorage.getItem("external_reference");
 
-     // ✅ Limpieza segura de sessionStorage
     if (!external_reference && referencia) {
       sessionStorage.removeItem("external_reference");
     }
 
     if (!referencia) return;
+
+    setInscripcionId(referencia); // ✅ Guardamos el ID para mostrar y enviar
 
     const obtenerDatos = async () => {
       try {
@@ -28,7 +29,6 @@ export default function Exito() {
         if (data && data.id) {
           setInscripcion(data);
 
-          // Obtener descripciones del automotor
           try {
             const resValor = await fetch(`/api/valorFiscal?codigo_mtm=${data.codigo_mtm}&anio=${data.anio}`);
             const datos = await resValor.json();
@@ -59,7 +59,17 @@ export default function Exito() {
 
   const handleEnviarWhatsapp = () => {
     if (!inscripcion) return;
-    const mensaje = `✅ Alta de inscripción:\n\n• Dominio: ${inscripcion.dominio}\n• CUIT/DNI: ${inscripcion.dni_cuit}\n• Contribuyente: ${inscripcion.apellido} ${inscripcion.nombre}\n• Pago: $${Number(inscripcion.total).toLocaleString()}\n• Fecha: ${new Date(inscripcion.fecha_pago).toLocaleString()}\n\nID de pago: ${inscripcion.payment_id_mercadopago}`;
+    const mensaje = `✅ Alta de inscripción:
+    
+• Dominio: ${inscripcion.dominio}
+• CUIT/DNI: ${inscripcion.dni_cuit}
+• Contribuyente: ${inscripcion.apellido} ${inscripcion.nombre}
+• Pago: $${Number(inscripcion.total).toLocaleString()}
+• Fecha: ${new Date(inscripcion.fecha_pago).toLocaleString()}
+
+🆔 ID Trámite: ${inscripcionId}
+💳 ID de pago: ${inscripcion.payment_id_mercadopago}`;
+
     const telefono = process.env.NEXT_PUBLIC_WHATSAPP_MUNICIPIO;
     const url = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
     window.open(url, "_blank");
@@ -99,16 +109,17 @@ export default function Exito() {
 
         <h2 className="text-lg font-semibold mt-6 mb-2">Detalle del Cálculo</h2>
         <p><strong>Alias para Pago:</strong> MUNICIPIO.SANMARTIN.MP</p>
-        <p><strong>Valor Tomado (Mayor entre Fiscal y Declarado):</strong> ${Number(inscripcion.mayor_valor || 0).toLocaleString()}</p>
+        <p><strong>Valor Tomado:</strong> ${Number(inscripcion.mayor_valor || 0).toLocaleString()}</p>
         {inscripcion.descuento > 0 && (
-          <p className="text-green-700"><strong>Descuento aplicado:</strong> -${Number(inscripcion.descuento).toLocaleString()}</p>
+          <p className="text-green-700"><strong>Descuento:</strong> -${Number(inscripcion.descuento).toLocaleString()}</p>
         )}
-        <p className="text-lg font-bold mt-2"><strong>Total a Pagar:</strong> ${Number(inscripcion.total).toLocaleString()}</p>
+        <p className="text-lg font-bold mt-2"><strong>Total:</strong> ${Number(inscripcion.total).toLocaleString()}</p>
 
         <h2 className="text-lg font-semibold mt-6 mb-2">Datos del Pago</h2>
         <p><strong>Forma de Pago:</strong> MercadoPago</p>
         <p><strong>Fecha de Pago:</strong> {new Date(inscripcion.fecha_pago).toLocaleString()}</p>
         <p><strong>ID de Pago:</strong> {inscripcion.payment_id_mercadopago}</p>
+        <p><strong>ID Trámite:</strong> {inscripcionId}</p>
 
         <div className="text-lg font-bold mt-4 text-center">
           Total Pagado: ${Number(inscripcion.total).toLocaleString()}
