@@ -1,4 +1,5 @@
-// ✅ Importaciones extra necesarias
+//pages/admin/tramites.tsx
+// Importaciones extra necesarias
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
