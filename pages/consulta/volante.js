@@ -60,16 +60,22 @@ export default function Volante() {
     const alicuota = 0.0005;
     const mayorValor = Math.max(Number(valor_fiscal || 0), Number(valor_declarado || 0));
     const baseVariable = mayorValor * alicuota;
-    const cantidadMeses = parseInt(tipo_pago.replace("mes", "").replace("es", ""));
+    
+    // ✅ Normalización robusta
+    const tipoPagoStr = String(tipo_pago || "").replace(/\s/g, "").toLowerCase();
+    let cantidadMeses = 1;
+    if (tipoPagoStr === "6meses") cantidadMeses = 6;
+    if (tipoPagoStr === "12meses") cantidadMeses = 12;
+
     const subtotal1 = baseFija;
     const subtotal2 = baseVariable * cantidadMeses;
     let totalPagar = subtotal1 + subtotal2;
     let descuento = 0;
 
-    if (tipo_pago === "12meses") {
+    if (cantidadMeses === 12) {
       descuento = 0.1 * totalPagar;
       totalPagar -= descuento;
-    } else if (tipo_pago === "6meses") {
+    } else if (cantidadMeses === 6) {
       descuento = 0.05 * totalPagar;
       totalPagar -= descuento;
     }
@@ -92,6 +98,9 @@ export default function Volante() {
         // ✅ MODIFICADO: recuperar creado_por desde datosTitular en sessionStorage
         const datosTitular = JSON.parse(sessionStorage.getItem("datosTitular"));
         const creado_por = datosTitular?.creado_por || "contribuyente";
+
+        console.log("🧾 Guardando inscripción con cantidadMeses =", cantidadMeses);
+
         
         const res = await fetch("/api/guardar-inscripcion", {
           method: "POST",

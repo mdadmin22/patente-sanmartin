@@ -89,6 +89,9 @@ export default async function handler(req, res) {
 
     const id = result.rows[0]?.id;
 
+    console.log("📥 API recibió meses =", req.body.meses);
+
+
     if (!id) {
       throw new Error("No se pudo obtener el ID generado");
     }
