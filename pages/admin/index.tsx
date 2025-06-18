@@ -1,10 +1,12 @@
 // pages/admin/index.tsx
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 
 export default function AdminInicio() {
   const router = useRouter();
+  const [autorizado, setAutorizado] = useState(false);
+  const [rolUsuario, setRolUsuario] = useState<string | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -17,14 +19,36 @@ export default function AdminInicio() {
       const payload = JSON.parse(atob(token.split('.')[1]));
       if (!payload || !payload.rol || payload.rol !== 'admin') {
         router.push('/admin/login');
+        return;
       }
+
+      setRolUsuario(payload.rol); // ✅ correcto lugar
+      setAutorizado(true);
     } catch {
       router.push('/admin/login');
     }
-  }, []);
+  }, [router]);
+
+  if (!autorizado) return <p>Verificando acceso...</p>;
 
   return (
     <div className="min-h-screen bg-[#5b2b8c] text-white pt-10 px-4">
+      <div className="flex justify-between items-center mb-6 px-4">
+        <div>
+          <h1 className="text-2xl font-bold">Panel Administrativo</h1>
+          <p className="text-sm text-white">Sesión iniciada como: <strong>{rolUsuario}</strong></p>
+        </div>
+        <button
+          onClick={() => {
+            localStorage.removeItem('token');
+            router.push('/admin/login');
+          }}
+          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+        >
+          Cerrar sesión
+        </button>
+      </div>
+
       <div className="flex justify-center mb-4">
         <Image src="/logo-municipio.jpg" alt="Logo Municipio" width={150} height={100} />
       </div>
@@ -50,8 +74,6 @@ export default function AdminInicio() {
           >
             👥 Listado de Operadores
           </button>
-
-          {/* 🔽 NUEVOS BOTONES PARA TRÁMITES PRESENCIALES */}
 
           <button
             onClick={() => router.push('/alta?origen=municipio')}

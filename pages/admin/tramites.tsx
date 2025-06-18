@@ -1,5 +1,3 @@
-//pages/admin/tramites.tsx
-// Importaciones extra necesarias
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
@@ -21,6 +19,7 @@ interface Tramite {
   telefono: string;
   domicilio_calle: string;
   domicilio_nro: string;
+  meses: number;
 }
 
 interface TramitesResponse {
@@ -31,10 +30,10 @@ interface TramitesResponse {
 export default function Tramites() {
   const [autorizado, setAutorizado] = useState(false);
   const [tramites, setTramites] = useState<Tramite[]>([]);
-  const [filtroTexto, setFiltroTexto] = useState(""); // ✅ Buscador general
-  const [filtroEstado, setFiltroEstado] = useState(""); // ✅ Filtro estado trámite
-  const [filtroPago, setFiltroPago] = useState(""); // ✅ Filtro estado pago
-  const [filtroTipo, setFiltroTipo] = useState(""); // ✅ Filtro tipo trámite
+  const [filtroTexto, setFiltroTexto] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState("");
+  const [filtroPago, setFiltroPago] = useState("");
+  const [filtroTipo, setFiltroTipo] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -90,7 +89,6 @@ export default function Tramites() {
     }
   };
 
-  // ✅ Lógica para filtrar los trámites mostrados
   const tramitesFiltrados = tramites.filter(t => {
     const texto = `${t.id} ${t.tipo_tramite} ${t.nombre} ${t.apellido} ${t.mail} ${t.telefono} ${t.dominio}`.toLowerCase();
     const coincideTexto = texto.includes(filtroTexto.toLowerCase());
@@ -106,7 +104,6 @@ export default function Tramites() {
     <div className="min-h-screen bg-white text-black pt-10 px-6">
       <h1 className="text-2xl font-bold mb-4">Listado de Trámites</h1>
 
-      {/* ✅ Filtros y búsqueda */}
       <div className="mb-4 flex flex-wrap gap-4 items-center">
         <input
           type="text"
@@ -146,7 +143,6 @@ export default function Tramites() {
         </select>
       </div>
 
-      {/* ✅ Tabla filtrada */}
       <table className="w-full border border-gray-300 text-sm">
         <thead className="bg-gray-100">
           <tr>
@@ -163,6 +159,7 @@ export default function Tramites() {
             <th className="border p-2">Dominio</th>
             <th className="border p-2">Descuento</th>
             <th className="border p-2">Total</th>
+            <th className="border p-2">Cuotas</th>
             <th className="border p-2">Estado Pago</th>
             <th className="border p-2">Payment ID</th>
           </tr>
@@ -188,6 +185,12 @@ export default function Tramites() {
                     </button>
                   </>
                 )}
+                <button
+                  className="mt-2 text-blue-600 font-semibold block"
+                  onClick={() => router.push(`/admin/cuotas?dominio=${t.dominio}`)}
+                >
+                  Ver cuotas
+                </button>
               </td>
               <td className="border p-2">{t.tipo_tramite}</td>
               <td className="border p-2">{t.estado_tramite}</td>
@@ -204,6 +207,7 @@ export default function Tramites() {
               <td className="border p-2">
                 {t.total.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}
               </td>
+              <td className="border p-2 text-center">{t.meses}</td>
               <td className="border p-2">{t.estado_pago_contribuyente}</td>
               <td className="border p-2">{t.payment_id_mercadopago}</td>
             </tr>

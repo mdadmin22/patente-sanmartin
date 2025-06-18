@@ -15,6 +15,10 @@ export default async function handler(req, res) {
     return res.status(403).json({ error: 'Token inválido' });
   }
 
+  if (decoded.rol !== 'admin') {
+  return res.status(403).json({ error: 'Acceso denegado: solo administradores' });
+  }
+
   const client = new Client({ connectionString: process.env.DATABASE_URL });
   await client.connect();
 
@@ -36,7 +40,8 @@ export default async function handler(req, res) {
         mail,
         telefono,
         domicilio_calle,
-        domicilio_nro
+        domicilio_nro,
+        meses
       FROM inscripciones
       ORDER BY id DESC
     `);
