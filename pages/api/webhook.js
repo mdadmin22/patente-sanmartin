@@ -2,9 +2,7 @@
 import { Client } from "pg";
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).end("Method Not Allowed");
-  }
+  if (req.method !== "POST") return res.status(405).end("Method Not Allowed");
 
   const { type, data } = req.body;
 
@@ -13,21 +11,17 @@ export default async function handler(req, res) {
 
     try {
       const mpRes = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
-        headers: {
-          Authorization: `Bearer ${process.env.MERCADOPAGO_TOKEN}`,
-        },
+        headers: { Authorization: `Bearer ${process.env.MERCADOPAGO_TOKEN}` },
       });
 
       const paymentInfo = await mpRes.json();
 
       if (paymentInfo.status === "approved") {
         const inscripcionId = parseInt(paymentInfo.external_reference);
-
-        const client = new Client({
-          connectionString: process.env.DATABASE_URL,
-        });
+        const client = new Client({ connectionString: process.env.DATABASE_URL });
         await client.connect();
 
+        // ✅ Marcar inscripción como pagada
         await client.query(
           `UPDATE inscripciones
            SET estado_pago_contribuyente = 'aprobado',
@@ -37,39 +31,31 @@ export default async function handler(req, res) {
           [paymentId, inscripcionId]
         );
 
+        // ✅ Obtener dominio, meses, total
         const { rows } = await client.query(
-          `SELECT dominio, meses FROM inscripciones WHERE id = $1`,
+          `SELECT dominio, meses, total FROM inscripciones WHERE id = $1`,
           [inscripcionId]
         );
 
         if (rows.length === 0) {
-          console.warn("⚠️ No se encontró inscripción con ese ID.");
           await client.end();
           return res.status(404).json({ error: "Inscripción no encontrada" });
         }
 
-        const { dominio } = rows[0];
-        const meses = parseInt(rows[0].meses);
+        const { dominio, meses, total } = rows[0];
+        const cuotasTotales = 60;
+        const montoPorCuota = Number(total) / Number(meses);
 
-        console.log(`🎯 Webhook obtuvo meses = ${meses} para dominio ${dominio}`);
 
-        if (isNaN(meses) || meses < 1) {
-          console.warn(`⚠️ Valor de 'meses' inválido (${meses})`);
-          await client.end();
-          return res.status(400).json({ error: "Valor de 'meses' inválido" });
-        }
-
+        // ✅ Verificamos si ya hay cuotas
         const { rows: cuotasExistentes } = await client.query(
           `SELECT 1 FROM cuotas_contribuyente WHERE dominio = $1 LIMIT 1`,
           [dominio]
         );
 
         if (cuotasExistentes.length === 0) {
-          const cuotasTotales = 60;
-          const montoPorCuota = 10000;
-
           const fechaInicio = new Date();
-          fechaInicio.setDate(1); // ✅ Fecha base estable
+          fechaInicio.setDate(1);
 
           const calcularVencimiento = (inicio, nroCuota) => {
             const venc = new Date(inicio);
@@ -84,8 +70,9 @@ export default async function handler(req, res) {
             await client.query(
               `INSERT INTO cuotas_contribuyente (
                 id_contribuyente, dominio, año, cuota_nro,
-                fecha_vencimiento, monto, estado, fecha_pago
-              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+                fecha_vencimiento, monto, estado, fecha_pago,
+                payment_id_mercadopago, forma_pago
+              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
               [
                 inscripcionId,
                 dominio,
@@ -95,13 +82,15 @@ export default async function handler(req, res) {
                 montoPorCuota,
                 i <= meses ? "pagada" : "pendiente",
                 i <= meses ? new Date() : null,
+                i <= meses ? paymentId : null,
+                i <= meses ? "MercadoPago" : null,
               ]
             );
           }
 
-          console.log(`📌 Cuotas generadas para ${dominio}: ${cuotasTotales} totales, ${meses} pagadas.`);
+          console.log(`✅ Se generaron ${cuotasTotales} cuotas para ${dominio}, de las cuales ${meses} se marcaron como pagadas.`);
         } else {
-          // ✅ Solo actualizar cuotas si ya existían
+          // ✅ Actualizamos cuotas existentes
           const result = await client.query(
             `
             WITH cuotas_a_pagar AS (
@@ -112,14 +101,19 @@ export default async function handler(req, res) {
               LIMIT $2
             )
             UPDATE cuotas_contribuyente
-            SET estado = 'pagada', fecha_pago = NOW()
+            SET
+              estado = 'pagada',
+              fecha_pago = NOW(),
+              payment_id_mercadopago = $3,
+              forma_pago = 'MercadoPago',
+              monto = $4
             WHERE id IN (SELECT id FROM cuotas_a_pagar)
             RETURNING id
           `,
-            [dominio, meses]
+            [dominio, meses, paymentId, montoPorCuota]
           );
 
-          console.log(`♻️ Cuotas ya existentes actualizadas: ${result.rowCount} marcadas como pagadas para ${dominio}`);
+          console.log(`♻️ Cuotas existentes actualizadas para ${dominio}: ${result.rowCount} cuotas marcadas como pagadas.`);
         }
 
         await client.end();

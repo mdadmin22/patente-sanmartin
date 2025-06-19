@@ -31,11 +31,11 @@ export default function AdminCuotas() {
 
   // ✅ MODIFICACIÓN: sumamos como número, no como texto
   const totalAdeudado = pendientes.reduce(
-    (acc, c) => acc + (parseFloat(c.importe) || 0),
+    (acc, c) => acc + (parseFloat(c.monto) || 0),
     0
   );
   const totalAbonado = pagadas.reduce(
-    (acc, c) => acc + (parseFloat(c.importe) || 0),
+    (acc, c) => acc + (parseFloat(c.monto) || 0),
     0
   );
 
@@ -86,6 +86,7 @@ export default function AdminCuotas() {
             </thead>
             <tbody>
               {cuotas.map((c, i) => (
+                
                 <tr
                   key={c.id}
                   className={`border-b border-gray-700 ${
@@ -101,13 +102,13 @@ export default function AdminCuotas() {
                     {c.fecha_pago ? c.fecha_pago.substring(0, 10) : "-"}
                   </td>
                   <td className="py-2 px-4">
-                    {c.importe?.toLocaleString("es-AR", {
+                    {c.monto?.toLocaleString("es-AR", {
                       style: "currency",
                       currency: "ARS",
                     }) ?? "-"}
                   </td>
                   <td className="py-2 px-4">
-                    {c.id_pago_mercadopago || "-"}
+                    {c.payment_id_mercadopago || "-"}
                   </td>
                 </tr>
               ))}
