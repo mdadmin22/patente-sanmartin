@@ -69,6 +69,13 @@ export default function AdminInicio() {
           </button>
 
           <button
+            onClick={() => router.push('/admin/tramites-pendientes')}
+            className="w-full bg-yellow-200 text-[#5b2b8c] font-bold py-2 px-6 rounded-md shadow-md hover:shadow-xl hover:-translate-y-1"
+          >
+          📥 Ver trámites pendientes
+         </button>
+
+          <button
             onClick={() => router.push('/admin/usuarios')}
             className="w-full bg-white text-[#5b2b8c] font-bold py-2 px-6 rounded-md shadow-md hover:shadow-xl hover:-translate-y-1"
           >

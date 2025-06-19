@@ -1,4 +1,4 @@
-// pages/api/tramites.js
+// pages/api/tramites-pendientes.js
 import { Client } from 'pg';
 import jwt from 'jsonwebtoken';
 
@@ -16,7 +16,7 @@ export default async function handler(req, res) {
   }
 
   if (decoded.rol !== 'admin') {
-  return res.status(403).json({ error: 'Acceso denegado: solo administradores' });
+    return res.status(403).json({ error: 'Acceso denegado: solo administradores' });
   }
 
   const client = new Client({ connectionString: process.env.DATABASE_URL });
@@ -43,9 +43,9 @@ export default async function handler(req, res) {
         domicilio_nro,
         meses
       FROM inscripciones
-      WHERE estado_pago_contribuyente = 'aprobado'
-        AND payment_id_mercadopago IS NOT NULL
-        AND payment_id_mercadopago <> ''
+      WHERE estado_pago_contribuyente = 'pendiente'
+        OR payment_id_mercadopago IS NULL
+        OR payment_id_mercadopago = ''
       ORDER BY id DESC
     `);
 
