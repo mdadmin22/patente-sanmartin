@@ -57,6 +57,23 @@ export default async function handler(req, res) {
       creado_por = "contribuyente"; // valor por defecto si viene mal o nulo
     }
 
+    // ✅ Validación para evitar ALTA duplicada con mismo dominio ya aprobado
+    if (tipo_tramite === "ALTA") {
+      const existeAlta = await client.query(
+        `SELECT id FROM inscripciones 
+         WHERE LOWER(dominio) = LOWER($1) 
+         AND tipo_tramite = 'ALTA' 
+         AND estado_pago_contribuyente = 'aprobado'`,
+        [dominio]
+      );
+
+      if (existeAlta.rows.length > 0) {
+        return res.status(400).json({
+          error: "Ya existe un ALTA aprobada para este dominio. No se puede duplicar.",
+        });
+      }
+    }
+
     const result = await client.query(
       `
       INSERT INTO inscripciones (
@@ -91,7 +108,6 @@ export default async function handler(req, res) {
 
     console.log("📥 API recibió meses =", req.body.meses);
 
-
     if (!id) {
       throw new Error("No se pudo obtener el ID generado");
     }
@@ -99,7 +115,7 @@ export default async function handler(req, res) {
     res.status(200).json({ id });
   } catch (error) {
     console.error("❌ Error al guardar en la base:", error);
-    res.status(500).json({ error: "Error al guardar en la base" });
+    res.status(500).json({ error: error.message || "Error al guardar en la base" });
   } finally {
     await client.end();
   }

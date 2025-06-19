@@ -20,19 +20,39 @@ export default function SeleccionOrigen() {
     }
   }, []);
 
-  const manejarSiguiente = () => {
-    const datosTitular = JSON.parse(sessionStorage.getItem("datosTitular"));
-
-    sessionStorage.setItem("datosPaso2", JSON.stringify({
-      ...(datosTitular || {}),
-      tipo_dominio: tipoDominio,
-      dominio,
-      origen,
-      anio
-    }));
-
-    router.push("/consulta/codigo");
+  const verificarDominioYaInscripto = async () => {
+  const res = await fetch(`/api/verificar-dominio?dominio=${dominio}`);
+  const data = await res.json();
+  return data.yaExiste;
   };
+
+
+  const manejarSiguiente = async () => {
+  if (!dominio.trim()) {
+    alert("Por favor ingresá un dominio.");
+    return;
+  }
+
+  const yaExiste = await verificarDominioYaInscripto();
+
+  if (yaExiste) {
+    alert("Este dominio ya fue inscripto mediante un ALTA aprobada. No se puede duplicar.");
+    return;
+  }
+
+  const datosTitular = JSON.parse(sessionStorage.getItem("datosTitular"));
+
+  sessionStorage.setItem("datosPaso2", JSON.stringify({
+    ...(datosTitular || {}),
+    tipo_dominio: tipoDominio,
+    dominio,
+    origen,
+    anio
+  }));
+
+  router.push("/consulta/codigo");
+};
+
 
   const placeholderDominio = tipoDominio === "Mercosur" ? "Ej: AA123BB" : "Ej: ABC123";
 
